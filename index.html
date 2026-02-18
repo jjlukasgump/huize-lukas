@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Overzicht Zorg Huize Lukas</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+    const SUPABASE_URL = 'https://ljupvfenzalnqnulyrvg.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxqdXB2ZmVuemFsbnFudWx5cnZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzMjc3MDYsImV4cCI6MjA4NjkwMzcwNn0.86TB7rW3V7xSkWdc9C_l8Rt6PwQWliidrWGKk9-HsN8';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const App = () => {
+      const [currentUser, setCurrentUser] = useState(null);
+      const [loading, setLoading] = useState(true);
+
+      useEffect(() => {
+        const user = localStorage.getItem('huizelukas_user');
+        if (user) setCurrentUser(JSON.parse(user));
+        setLoading(false);
+      }, []);
+
+      const handleLogin = (naam) => {
+        const user = { naam };
+        localStorage.setItem('huizelukas_user', JSON.stringify(user));
+        setCurrentUser(user);
+      };
+
+      const handleLogout = () => {
+        localStorage.removeItem('huizelukas_user');
+        setCurrentUser(null);
+      };
+
+      if (loading) {
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl mx-auto mb-4 animate-pulse"></div>
+              <p className="text-gray-600 font-medium">Laden...</p>
+            </div>
+          </div>
+        );
+      }
+
+      if (!currentUser) return <LoginScreen onLogin={handleLogin} />;
+      return <MainApp currentUser={currentUser} onLogout={handleLogout} />;
+    };
+
+    const LoginScreen = ({ onLogin }) => {
+      const [naam, setNaam] = useState('');
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        if (naam.trim()) onLogin(naam.trim());
+      };
+
+      return (
+        <div className="fixed inset-0 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
+            <div className="text-center mb-8">
+              <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg">
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Welkom bij</h2>
+              <p className="text-xl font-semibold text-indigo-600">Overzicht Zorg Huize Lukas</p>
+              <p className="text-gray-600 mt-2">Log in om te beginnen</p>
+            </div>
+            <form onSubmit={handleSubmit}>
+              <input type="text" placeholder="Je naam" value={naam} onChange={(e) => setNaam(e.target.value)} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl mb-4 focus:border-indigo-500 focus:outline-none transition-colors" />
+              <button type="submit" disabled={!naam.trim()} className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-3 rounded-xl font-medium hover:from-indigo-600 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed">
+                Inloggen
+              </button>
+            </form>
+          </div>
+        </div>
+      );
+    };
+
+    const MainApp = ({ currentUser, onLogout }) => {
+      const [kinderen, setKinderen] = useState([]);
+      const [loading, setLoading] = useState(true);
+
+      useEffect(() => { loadKinderen(); }, []);
+
+      const loadKinderen = async () => {
+        try {
+          const { data, error } = await supabase.from('kinderen').select('*').order('created_at', { ascending: false });
+          if (error) throw error;
+          setKinderen(data || []);
+        } catch (error) {
+          console.error('Error:', error);
+          alert('Fout bij laden: ' + error.message);
+        }
+        setLoading(false);
+      };
+
+      const addKind = async () => {
+        const naam = prompt('Naam kind:');
+        if (!naam) return;
+        try {
+          const nieuwKind = {
+            id: Date.now().toString(),
+            naam,
+            geboortedatum: '',
+            notities: '',
+            foto: '',
+            aangemaakt_door: currentUser.naam,
+            aangemaakt_op: new Date().toISOString()
+          };
+          const { data, error } = await supabase.from('kinderen').insert([nieuwKind]).select();
+          if (error) throw error;
+          setKinderen([...kinderen, data[0]]);
+          alert('Kind toegevoegd! ✅');
+        } catch (error) {
+          console.error('Error:', error);
+          alert('Fout: ' + error.message);
+        }
+      };
+
+      if (loading) {
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-gray-50 via-indigo-50 to-purple-50 flex items-center justify-center">
+            <p className="text-gray-600">Laden...</p>
+          </div>
+        );
+      }
+
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-indigo-50 to-purple-50 p-4">
+          <div className="max-w-2xl mx-auto">
+            <div className="bg-white rounded-2xl shadow-sm p-4 mb-6 border-2 border-gray-100">
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="text-xs text-gray-500">Ingelogd als</p>
+                  <p className="font-semibold text-gray-900">{currentUser.naam}</p>
+                </div>
+                <button onClick={onLogout} className="text-sm text-gray-600 hover:text-gray-900 px-4 py-2 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors font-medium">
+                  Uitloggen
+                </button>
+              </div>
+            </div>
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border-2 border-green-200 mb-6">
+              <h2 className="text-2xl font-bold text-green-900 mb-2">🎉 Database werkt!</h2>
+              <p className="text-green-700 mb-4">Je bent verbonden met de Supabase database. Alles wat je nu toevoegt wordt opgeslagen en gesynchroniseerd!</p>
+              <div className="bg-white p-4 rounded-xl">
+                <h3 className="font-semibold text-gray-900 mb-2">Test: Kinderen ({kinderen.length})</h3>
+                {kinderen.length === 0 ? (
+                  <p className="text-sm text-gray-600 mb-3">Nog geen kinderen toegevoegd</p>
+                ) : (
+                  <ul className="space-y-2 mb-3">
+                    {kinderen.map(kind => (
+                      <li key={kind.id} className="text-sm bg-gray-50 p-2 rounded">
+                        {kind.naam} (toegevoegd door {kind.aangemaakt_door})
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <button onClick={addKind} className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 font-medium">
+                  + Test: Voeg kind toe
+                </button>
+              </div>
+            </div>
+            <div className="bg-white rounded-2xl p-6 border-2 border-blue-100">
+              <h3 className="font-bold text-lg text-gray-900 mb-3">📋 Volgende stappen:</h3>
+              <ol className="space-y-2 text-sm text-gray-700">
+                <li className="flex gap-2"><span className="font-bold text-blue-600">1.</span><span>Test of het werkt: voeg een kind toe en herlaad de pagina</span></li>
+                <li className="flex gap-2"><span className="font-bold text-blue-600">2.</span><span>Als het kind er nog staat = database werkt! ✅</span></li>
+                <li className="flex gap-2"><span className="font-bold text-blue-600">3.</span><span>Dan bouw ik de volledige app met alle functies</span></li>
+                <li className="flex gap-2"><span className="font-bold text-blue-600">4.</span><span>Jullie hebben een link om te delen! 🚀</span></li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>
