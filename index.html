@@ -181,14 +181,17 @@
       const saveOrganisatie = async (org) => {
         try {
           if (org.id && organisaties.find(o => o.id === org.id)) {
-            await supabase.from('organisaties').update(org).eq('id', org.id);
+            const { error } = await supabase.from('organisaties').update(org).eq('id', org.id);
+            if (error) throw error;
             setOrganisaties(organisaties.map(o => o.id === org.id ? org : o));
           } else {
-            const { data } = await supabase.from('organisaties').insert([org]).select();
-            setOrganisaties([...organisaties, data[0]]);
+            const { data, error } = await supabase.from('organisaties').insert([org]).select();
+            if (error) throw error;
+            if (data && data[0]) setOrganisaties([...organisaties, data[0]]);
+            else setOrganisaties([...organisaties, org]);
           }
           return true;
-        } catch (e) { alert('Fout: ' + e.message); return false; }
+        } catch (e) { alert('Fout bij opslaan organisatie: ' + e.message); return false; }
       };
 
       const deleteOrganisatie = async (id) => {
