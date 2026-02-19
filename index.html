@@ -27,12 +27,7 @@ const inputSmCls = "w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl focus
 const labelCls = "block text-sm font-semibold text-gray-700 mb-2";
 const btnPrimary = "w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-3 rounded-xl font-medium shadow-lg hover:from-indigo-600 hover:to-purple-700 transition-all";
 
-// FIX 1: datumTekst helper — YYYY-MM-DD naar DD-MM-JJJJ
-const toDutchDate = (iso) => {
-  if (!iso || iso.length < 10) return '';
-  const [y,m,d] = iso.split('-');
-  return `${d}-${m}-${y}`;
-};
+
 
 const ModalWrap = ({ onClose, title, children }) => (
   <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm z-50 overflow-y-auto">
@@ -948,44 +943,32 @@ const OrgModal = ({ org, onClose, onSave, currentUser }) => {
 };
 
 // ─── AFSPRAAK MODAL ───────────────────────────────────────────────────────────
-// FIX 1: datumTekst correct initialiseren vanuit bestaande datum
 const AfspraakModal = ({ afspraak, kinderen, trajecten, organisaties, onClose, onSave, currentUser }) => {
-  const [fd, setFd] = useState(() => {
-    const base = afspraak || {};
-    return {
-      id: base.id || Date.now().toString(),
-      titel: base.titel || '',
-      datum: base.datum || '',
-      tijd: base.tijd || '',
-      locatie: base.locatie || '',
-      kind_id: base.kind_id || '',
-      traject_id: base.traject_id || '',
-      organisatie_id: base.organisatie_id || '',
-      wie: base.wie || 'Beide',
-      status: base.status || 'gepland',
-      notities: base.notities || '',
-      verslag: base.verslag || '',
-      aangemaakt_door: base.aangemaakt_door || currentUser.naam,
-      aangemaakt_op: base.aangemaakt_op || new Date().toISOString(),
-    };
+  const base = afspraak || {};
+  const [fd, setFd] = useState({
+    id: base.id || Date.now().toString(),
+    titel: base.titel || '',
+    datum: base.datum || '',
+    tijd: base.tijd || '',
+    locatie: base.locatie || '',
+    kind_id: base.kind_id || '',
+    traject_id: base.traject_id || '',
+    organisatie_id: base.organisatie_id || '',
+    wie: base.wie || 'Beide',
+    status: base.status || 'gepland',
+    notities: base.notities || '',
+    verslag: base.verslag || '',
+    aangemaakt_door: base.aangemaakt_door || currentUser.naam,
+    aangemaakt_op: base.aangemaakt_op || new Date().toISOString(),
   });
   const filtTraj = fd.kind_id ? trajecten.filter(t=>t.kind_id===fd.kind_id&&t.status!=='afgesloten') : trajecten.filter(t=>t.status!=='afgesloten');
-  const save = async () => {
-    if(!fd.titel||!fd.datum){alert('Vul minimaal een titel en datum in.');return;}
-    if(await onSave(fd)) onClose();
-  };
+
   return (
     <ModalWrap onClose={onClose} title={afspraak?'Bewerk afspraak':'Nieuwe afspraak'}>
       <div className="space-y-4">
         <div><label className={labelCls}>Onderwerp / titel *</label><input type="text" placeholder="bijv. Gesprek met behandelaar" value={fd.titel} onChange={e=>setFd({...fd,titel:e.target.value})} className={inputCls}/></div>
-        <div>
-          <label className={labelCls}>Datum *</label>
-          <input type="date" value={fd.datum} onChange={e=>setFd({...fd, datum:e.target.value})} className={inputCls}/>
-        </div>
-        <div>
-          <label className={labelCls}>Tijdstip</label>
-          <input type="time" value={fd.tijd} onChange={e=>setFd({...fd,tijd:e.target.value})} className={inputCls}/>
-        </div>
+        <div><label className={labelCls}>Datum *</label><input type="date" value={fd.datum} onChange={e=>setFd({...fd,datum:e.target.value})} className={inputCls}/></div>
+        <div><label className={labelCls}>Tijdstip</label><input type="time" value={fd.tijd} onChange={e=>setFd({...fd,tijd:e.target.value})} className={inputCls}/></div>
         <div><label className={labelCls}>Locatie</label><input type="text" placeholder="Adres of videobellen" value={fd.locatie} onChange={e=>setFd({...fd,locatie:e.target.value})} className={inputCls}/></div>
         <div><label className={labelCls}>Kind</label>
           <select value={fd.kind_id} onChange={e=>setFd({...fd,kind_id:e.target.value,traject_id:''})} className={inputCls}>
@@ -1024,7 +1007,7 @@ const AfspraakModal = ({ afspraak, kinderen, trajecten, organisaties, onClose, o
   );
 };
 
-// ─── HEADER FOTO MODAL ────────────────────────────────────────────────────────
+// ─── HEADER FOTO MODAL ──────────────────────────────────────────────────────
 const HeaderFotoModal = ({ onClose, onSave, headerFoto }) => {
   const [foto, setFoto] = useState(headerFoto);
   const [loading, setLoading] = useState(false);
