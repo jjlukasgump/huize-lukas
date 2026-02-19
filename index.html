@@ -23,7 +23,7 @@
 
     // Gedeelde stijlen
     const inputCls = "w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none transition-colors text-base";
-    const inputSmCls = "w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none transition-colors text-sm";
+    const inputSmCls = "w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none transition-colors text-sm bg-white";
     const labelCls = "block text-sm font-semibold text-gray-700 mb-2";
     const btnPrimary = "w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-3 rounded-xl font-medium shadow-lg hover:from-indigo-600 hover:to-purple-700 transition-all";
 
@@ -240,11 +240,14 @@
       const today = new Date(); today.setHours(0,0,0,0);
       const week  = new Date(today); week.setDate(week.getDate()+7);
 
+      // Hulpfunctie: deadline string (YYYY-MM-DD) omzetten zonder tijdzone verschuiving
+      const parseDate = (str) => { if(!str) return null; const [y,m,d]=str.split('-'); return new Date(y, m-1, d); };
+
       let list = showDone ? actiepunten : actiepunten.filter(a=>a.status!=='afgerond');
       if (search) list = list.filter(a=>a.omschrijving?.toLowerCase().includes(search.toLowerCase()));
 
-      const over   = list.filter(a=>a.deadline && new Date(a.deadline)<today && a.status!=='afgerond');
-      const dezeWk = list.filter(a=>{ if(!a.deadline) return false; const d=new Date(a.deadline); return d>=today&&d<=week; });
+      const over   = list.filter(a=>{ const d=parseDate(a.deadline); return d&&d<today&&a.status!=='afgerond'; });
+      const dezeWk = list.filter(a=>{ const d=parseDate(a.deadline); return d&&d>=today&&d<=week; });
       const komend  = [...afspraken].filter(a=>{ if(!a.datum) return false; const d=new Date(a.datum+'T'+(a.tijd||'00:00')); return d>=today&&a.status!=='geannuleerd'; }).sort((a,b)=>new Date(a.datum+'T'+(a.tijd||'00:00'))-new Date(b.datum+'T'+(b.tijd||'00:00'))).slice(0,3);
 
       const toggle = async (a) => saveActiepunt({...a, status: a.status==='afgerond'?'open':'afgerond'});
@@ -853,7 +856,10 @@
                 <option value="JJ">JJ</option><option value="Linda">Linda</option><option value="Beide">Beide</option>
               </select>
             </div>}
-            <div><label className={labelCls}>Deadline</label><input type="date" value={fd.deadline} onChange={e=>setFd({...fd,deadline:e.target.value})} className={inputSmCls}/></div>
+            <div>
+              <label className={labelCls}>Deadline</label>
+              <input type="date" value={fd.deadline} onChange={e=>setFd({...fd,deadline:e.target.value})} className={inputSmCls}/>
+            </div>
             <div><label className={labelCls}>Prioriteit</label>
               <select value={fd.prioriteit} onChange={e=>setFd({...fd,prioriteit:e.target.value})} className={inputCls}>
                 <option value="laag">Laag</option><option value="normaal">Normaal</option><option value="hoog">Hoog</option>
@@ -902,8 +908,14 @@
           <div className="space-y-4">
             <div><label className={labelCls}>Onderwerp / titel *</label><input type="text" placeholder="bijv. Gesprek met behandelaar" value={fd.titel} onChange={e=>setFd({...fd,titel:e.target.value})} className={inputCls}/></div>
             <div className="grid grid-cols-2 gap-3">
-              <div><label className={labelCls}>Datum *</label><input type="date" value={fd.datum} onChange={e=>setFd({...fd,datum:e.target.value})} className={inputSmCls}/></div>
-              <div><label className={labelCls}>Tijdstip</label><input type="time" value={fd.tijd} onChange={e=>setFd({...fd,tijd:e.target.value})} className={inputSmCls}/></div>
+              <div>
+                <label className={labelCls}>Datum *</label>
+                <input type="date" value={fd.datum} onChange={e=>setFd({...fd,datum:e.target.value})} className={inputSmCls}/>
+              </div>
+              <div>
+                <label className={labelCls}>Tijdstip</label>
+                <input type="time" value={fd.tijd} onChange={e=>setFd({...fd,tijd:e.target.value})} className={inputSmCls}/>
+              </div>
             </div>
             <div><label className={labelCls}>Locatie</label><input type="text" placeholder="Adres of videobellen" value={fd.locatie} onChange={e=>setFd({...fd,locatie:e.target.value})} className={inputCls}/></div>
             <div><label className={labelCls}>Kind</label>
