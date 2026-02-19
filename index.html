@@ -15,95 +15,79 @@
   <div id="root"></div>
   <script type="text/babel">
     const { useState, useEffect } = React;
-    
     const SUPABASE_URL = 'https://ljupvfenzalnqnulyrvg.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxqdXB2ZmVuemFsbnFudWx5cnZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzMjc3MDYsImV4cCI6MjA4NjkwMzcwNn0.86TB7rW3V7xSkWdc9C_l8Rt6PwQWliidrWGKk9-HsN8';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
     const USERS = { 'JJ': 'catomoos', 'Linda': 'mooscato' };
+    const ORG_TYPES = ['Gemeente','Zorginstelling','School','Ziekenhuis','Verzekeraar','Thuiszorg','GGZ','MEE','Wijkteam','Anders'];
 
-    const ORG_TYPES = ['Gemeente', 'Zorginstelling', 'School', 'Ziekenhuis', 'Verzekeraar', 'Thuiszorg', 'GGZ', 'MEE', 'Wijkteam', 'Anders'];
-
+    // ─── APP ─────────────────────────────────────────────────────────────────────
     const App = () => {
       const [currentUser, setCurrentUser] = useState(null);
       const [loading, setLoading] = useState(true);
-
       useEffect(() => {
-        const user = localStorage.getItem('huizelukas_user');
-        if (user) setCurrentUser(JSON.parse(user));
+        const u = localStorage.getItem('huizelukas_user');
+        if (u) setCurrentUser(JSON.parse(u));
         setLoading(false);
       }, []);
-
       const handleLogin = (naam, wachtwoord) => {
         if (USERS[naam] === wachtwoord) {
-          const user = { naam };
-          localStorage.setItem('huizelukas_user', JSON.stringify(user));
-          setCurrentUser(user);
-          return true;
+          const u = { naam };
+          localStorage.setItem('huizelukas_user', JSON.stringify(u));
+          setCurrentUser(u); return true;
         }
         return false;
       };
-
-      const handleLogout = () => {
-        localStorage.removeItem('huizelukas_user');
-        setCurrentUser(null);
-      };
-
-      if (loading) return (
-        <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center">
-          <div className="text-center">
-            <div className="w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl mx-auto mb-4 animate-pulse"></div>
-            <p className="text-gray-600 font-medium">Laden...</p>
-          </div>
-        </div>
-      );
-
+      const handleLogout = () => { localStorage.removeItem('huizelukas_user'); setCurrentUser(null); };
+      if (loading) return <Loader />;
       if (!currentUser) return <LoginScreen onLogin={handleLogin} />;
       return <MainApp currentUser={currentUser} onLogout={handleLogout} />;
     };
 
+    const Loader = () => (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl mx-auto mb-4 animate-pulse"></div>
+          <p className="text-gray-600 font-medium">Laden...</p>
+        </div>
+      </div>
+    );
+
+    // ─── LOGIN ────────────────────────────────────────────────────────────────────
     const LoginScreen = ({ onLogin }) => {
       const [naam, setNaam] = useState('');
       const [wachtwoord, setWachtwoord] = useState('');
       const [error, setError] = useState('');
-
       const handleSubmit = (e) => {
         e.preventDefault();
-        if (!onLogin(naam, wachtwoord)) {
-          setError('Ongeldige gebruikersnaam of wachtwoord');
-          setWachtwoord('');
-        }
+        if (!onLogin(naam, wachtwoord)) { setError('Ongeldige gebruikersnaam of wachtwoord'); setWachtwoord(''); }
       };
-
       return (
         <div className="fixed inset-0 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
             <div className="text-center mb-8">
               <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                </svg>
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Welkom bij</h2>
               <p className="text-xl font-semibold text-indigo-600">Overzicht Zorg Huize Lukas</p>
             </div>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <select value={naam} onChange={(e) => setNaam(e.target.value)} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none transition-colors">
+              <select value={naam} onChange={(e) => setNaam(e.target.value)} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none">
                 <option value="">Selecteer gebruiker</option>
                 <option value="JJ">JJ</option>
                 <option value="Linda">Linda</option>
               </select>
-              <input type="password" placeholder="Wachtwoord" value={wachtwoord} onChange={(e) => setWachtwoord(e.target.value)} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none transition-colors" />
+              <input type="password" placeholder="Wachtwoord" value={wachtwoord} onChange={(e) => setWachtwoord(e.target.value)} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none" />
               {error && <p className="text-red-600 text-sm">{error}</p>}
-              <button type="submit" disabled={!naam || !wachtwoord} className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-3 rounded-xl font-medium hover:from-indigo-600 hover:to-purple-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
-                Inloggen
-              </button>
+              <button type="submit" disabled={!naam || !wachtwoord} className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-3 rounded-xl font-medium shadow-lg disabled:opacity-50">Inloggen</button>
             </form>
           </div>
         </div>
       );
     };
 
+    // ─── MAIN APP ─────────────────────────────────────────────────────────────────
     const MainApp = ({ currentUser, onLogout }) => {
       const [currentView, setCurrentView] = useState('dashboard');
       const [kinderen, setKinderen] = useState([]);
@@ -111,6 +95,8 @@
       const [actiepunten, setActiepunten] = useState([]);
       const [organisaties, setOrganisaties] = useState([]);
       const [interacties, setInteracties] = useState([]);
+      const [afspraken, setAfspraken] = useState([]);
+      const [documenten, setDocumenten] = useState([]);
       const [headerFoto, setHeaderFoto] = useState('');
       const [showModal, setShowModal] = useState(null);
       const [searchTerm, setSearchTerm] = useState('');
@@ -121,133 +107,152 @@
 
       const loadAllData = async () => {
         try {
-          const [k, t, a, o, i, s] = await Promise.all([
+          const [k,t,a,o,i,af,d,s] = await Promise.all([
             supabase.from('kinderen').select('*'),
             supabase.from('trajecten').select('*'),
             supabase.from('actiepunten').select('*'),
             supabase.from('organisaties').select('*'),
             supabase.from('interacties').select('*'),
-            supabase.from('instellingen').select('*').eq('id', 'settings').single()
+            supabase.from('afspraken').select('*'),
+            supabase.from('documenten').select('*'),
+            supabase.from('instellingen').select('*').eq('id','settings').single()
           ]);
-          setKinderen(k.data || []);
-          setTrajecten(t.data || []);
-          setActiepunten(a.data || []);
-          setOrganisaties(o.data || []);
-          setInteracties(i.data || []);
-          setHeaderFoto(s.data?.header_foto || '');
-        } catch (err) { console.error(err); }
+          setKinderen(k.data||[]); setTrajecten(t.data||[]); setActiepunten(a.data||[]);
+          setOrganisaties(o.data||[]); setInteracties(i.data||[]); setAfspraken(af.data||[]);
+          setDocumenten(d.data||[]); setHeaderFoto(s.data?.header_foto||'');
+        } catch(e) { console.error(e); }
         setLoading(false);
       };
 
       const saveKind = async (kind) => {
         try {
-          if (kind.id && kinderen.find(k => k.id === kind.id)) {
-            await supabase.from('kinderen').update(kind).eq('id', kind.id);
-            setKinderen(kinderen.map(k => k.id === kind.id ? kind : k));
+          if (kind.id && kinderen.find(k=>k.id===kind.id)) {
+            await supabase.from('kinderen').update(kind).eq('id',kind.id);
+            setKinderen(kinderen.map(k=>k.id===kind.id?kind:k));
           } else {
-            const { data } = await supabase.from('kinderen').insert([kind]).select();
-            setKinderen([...kinderen, data[0]]);
+            const {data} = await supabase.from('kinderen').insert([kind]).select();
+            setKinderen([...kinderen,data[0]]);
           }
           return true;
-        } catch (e) { alert('Fout: ' + e.message); return false; }
+        } catch(e) { alert('Fout: '+e.message); return false; }
       };
 
       const saveTraject = async (traject) => {
         try {
-          if (traject.id && trajecten.find(t => t.id === traject.id)) {
-            await supabase.from('trajecten').update(traject).eq('id', traject.id);
-            setTrajecten(trajecten.map(t => t.id === traject.id ? traject : t));
+          if (traject.id && trajecten.find(t=>t.id===traject.id)) {
+            await supabase.from('trajecten').update(traject).eq('id',traject.id);
+            setTrajecten(trajecten.map(t=>t.id===traject.id?traject:t));
           } else {
-            const { data } = await supabase.from('trajecten').insert([traject]).select();
-            setTrajecten([...trajecten, data[0]]);
+            const {data} = await supabase.from('trajecten').insert([traject]).select();
+            setTrajecten([...trajecten,data[0]]);
           }
           return true;
-        } catch (e) { alert('Fout: ' + e.message); return false; }
+        } catch(e) { alert('Fout: '+e.message); return false; }
       };
 
       const saveActiepunt = async (ap) => {
         try {
-          if (ap.id && actiepunten.find(a => a.id === ap.id)) {
-            await supabase.from('actiepunten').update(ap).eq('id', ap.id);
-            setActiepunten(actiepunten.map(a => a.id === ap.id ? ap : a));
+          if (ap.id && actiepunten.find(a=>a.id===ap.id)) {
+            await supabase.from('actiepunten').update(ap).eq('id',ap.id);
+            setActiepunten(actiepunten.map(a=>a.id===ap.id?ap:a));
           } else {
-            const { data } = await supabase.from('actiepunten').insert([ap]).select();
-            setActiepunten([...actiepunten, data[0]]);
+            const {data} = await supabase.from('actiepunten').insert([ap]).select();
+            setActiepunten([...actiepunten,data[0]]);
           }
           return true;
-        } catch (e) { alert('Fout: ' + e.message); return false; }
+        } catch(e) { alert('Fout: '+e.message); return false; }
       };
 
       const saveOrganisatie = async (org) => {
         try {
-          if (org.id && organisaties.find(o => o.id === org.id)) {
-            const { error } = await supabase.from('organisaties').update(org).eq('id', org.id);
+          if (org.id && organisaties.find(o=>o.id===org.id)) {
+            const {error} = await supabase.from('organisaties').update(org).eq('id',org.id);
             if (error) throw error;
-            setOrganisaties(organisaties.map(o => o.id === org.id ? org : o));
+            setOrganisaties(organisaties.map(o=>o.id===org.id?org:o));
           } else {
-            const { data, error } = await supabase.from('organisaties').insert([org]).select();
+            const {data,error} = await supabase.from('organisaties').insert([org]).select();
             if (error) throw error;
-            if (data && data[0]) setOrganisaties([...organisaties, data[0]]);
-            else setOrganisaties([...organisaties, org]);
+            setOrganisaties([...organisaties, data&&data[0]?data[0]:org]);
           }
           return true;
-        } catch (e) { alert('Fout bij opslaan organisatie: ' + e.message); return false; }
+        } catch(e) { alert('Fout: '+e.message); return false; }
       };
 
       const deleteOrganisatie = async (id) => {
         try {
-          await supabase.from('organisaties').delete().eq('id', id);
-          setOrganisaties(organisaties.filter(o => o.id !== id));
+          await supabase.from('organisaties').delete().eq('id',id);
+          setOrganisaties(organisaties.filter(o=>o.id!==id));
           return true;
-        } catch (e) { alert('Fout: ' + e.message); return false; }
+        } catch(e) { alert('Fout: '+e.message); return false; }
+      };
+
+      const saveAfspraak = async (af) => {
+        try {
+          if (af.id && afspraken.find(a=>a.id===af.id)) {
+            const {error} = await supabase.from('afspraken').update(af).eq('id',af.id);
+            if (error) throw error;
+            setAfspraken(afspraken.map(a=>a.id===af.id?af:a));
+          } else {
+            const {data,error} = await supabase.from('afspraken').insert([af]).select();
+            if (error) throw error;
+            setAfspraken([...afspraken, data&&data[0]?data[0]:af]);
+          }
+          return true;
+        } catch(e) { alert('Fout: '+e.message); return false; }
+      };
+
+      const deleteAfspraak = async (id) => {
+        try {
+          await supabase.from('afspraken').delete().eq('id',id);
+          setAfspraken(afspraken.filter(a=>a.id!==id));
+          return true;
+        } catch(e) { alert('Fout: '+e.message); return false; }
+      };
+
+      const saveDocument = async (doc) => {
+        try {
+          if (doc.id && documenten.find(d=>d.id===doc.id)) {
+            const {error} = await supabase.from('documenten').update(doc).eq('id',doc.id);
+            if (error) throw error;
+            setDocumenten(documenten.map(d=>d.id===doc.id?doc:d));
+          } else {
+            const {data,error} = await supabase.from('documenten').insert([doc]).select();
+            if (error) throw error;
+            setDocumenten([...documenten, data&&data[0]?data[0]:doc]);
+          }
+          return true;
+        } catch(e) { alert('Fout: '+e.message); return false; }
+      };
+
+      const deleteDocument = async (id) => {
+        try {
+          await supabase.from('documenten').delete().eq('id',id);
+          setDocumenten(documenten.filter(d=>d.id!==id));
+          return true;
+        } catch(e) { alert('Fout: '+e.message); return false; }
       };
 
       const saveHeaderFoto = async (foto) => {
         try {
-          await supabase.from('instellingen').update({ header_foto: foto }).eq('id', 'settings');
-          setHeaderFoto(foto);
-          return true;
-        } catch (e) { alert('Fout: ' + e.message); return false; }
+          await supabase.from('instellingen').update({header_foto:foto}).eq('id','settings');
+          setHeaderFoto(foto); return true;
+        } catch(e) { alert('Fout: '+e.message); return false; }
       };
 
-      if (loading) return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-indigo-50 to-purple-50 flex items-center justify-center">
-          <p className="text-gray-600">Laden...</p>
-        </div>
-      );
+      if (loading) return <div className="min-h-screen flex items-center justify-center"><p className="text-gray-600">Laden...</p></div>;
 
       return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 via-indigo-50 to-purple-50">
           <div className="max-w-2xl mx-auto p-4">
             <Header currentUser={currentUser} onLogout={onLogout} />
-
-            {currentView === 'dashboard' && (
-              <Dashboard kinderen={kinderen} trajecten={trajecten} actiepunten={actiepunten} headerFoto={headerFoto}
-                searchTerm={searchTerm} setSearchTerm={setSearchTerm} showCompleted={showCompleted}
-                setShowCompleted={setShowCompleted} setShowModal={setShowModal} saveActiepunt={saveActiepunt} saveHeaderFoto={saveHeaderFoto} />
-            )}
-            {currentView === 'kinderen' && (
-              <KinderenView kinderen={kinderen} trajecten={trajecten} actiepunten={actiepunten}
-                setShowModal={setShowModal} setCurrentView={setCurrentView} />
-            )}
-            {currentView === 'trajecten' && (
-              <TrajectenView trajecten={trajecten} kinderen={kinderen} actiepunten={actiepunten}
-                interacties={interacties} organisaties={organisaties} setShowModal={setShowModal} setCurrentView={setCurrentView} />
-            )}
-            {currentView === 'organisaties' && (
-              <OrganisatiesView organisaties={organisaties} trajecten={trajecten}
-                setShowModal={setShowModal} onDelete={deleteOrganisatie} />
-            )}
-
+            {currentView==='dashboard' && <Dashboard kinderen={kinderen} trajecten={trajecten} actiepunten={actiepunten} afspraken={afspraken} headerFoto={headerFoto} searchTerm={searchTerm} setSearchTerm={setSearchTerm} showCompleted={showCompleted} setShowCompleted={setShowCompleted} setShowModal={setShowModal} saveActiepunt={saveActiepunt} saveHeaderFoto={saveHeaderFoto} />}
+            {currentView==='kinderen' && <KinderenView kinderen={kinderen} trajecten={trajecten} actiepunten={actiepunten} setShowModal={setShowModal} />}
+            {currentView==='trajecten' && <TrajectenView trajecten={trajecten} kinderen={kinderen} actiepunten={actiepunten} interacties={interacties} organisaties={organisaties} documenten={documenten} setShowModal={setShowModal} saveActiepunt={saveActiepunt} saveDocument={saveDocument} deleteDocument={deleteDocument} currentUser={currentUser} />}
+            {currentView==='afspraken' && <AfsprakenView afspraken={afspraken} kinderen={kinderen} trajecten={trajecten} organisaties={organisaties} setShowModal={setShowModal} onDelete={deleteAfspraak} />}
+            {currentView==='organisaties' && <OrganisatiesView organisaties={organisaties} trajecten={trajecten} setShowModal={setShowModal} onDelete={deleteOrganisatie} />}
             <BottomNav currentView={currentView} setCurrentView={setCurrentView} />
             <FloatingActionButton setShowModal={setShowModal} currentView={currentView} />
-
-            {showModal && (
-              <ModalManager showModal={showModal} setShowModal={setShowModal} currentUser={currentUser}
-                kinderen={kinderen} trajecten={trajecten} organisaties={organisaties}
-                saveKind={saveKind} saveTraject={saveTraject} saveActiepunt={saveActiepunt}
-                saveOrganisatie={saveOrganisatie} saveHeaderFoto={saveHeaderFoto} headerFoto={headerFoto} />
-            )}
+            {showModal && <ModalManager showModal={showModal} setShowModal={setShowModal} currentUser={currentUser} kinderen={kinderen} trajecten={trajecten} organisaties={organisaties} saveKind={saveKind} saveTraject={saveTraject} saveActiepunt={saveActiepunt} saveOrganisatie={saveOrganisatie} saveAfspraak={saveAfspraak} saveHeaderFoto={saveHeaderFoto} headerFoto={headerFoto} />}
           </div>
         </div>
       );
@@ -256,28 +261,30 @@
     const Header = ({ currentUser, onLogout }) => (
       <div className="bg-white rounded-2xl shadow-sm p-4 mb-6 border-2 border-gray-100">
         <div className="flex justify-between items-center">
-          <div>
-            <p className="text-xs text-gray-500">Ingelogd als</p>
-            <p className="font-semibold text-gray-900">{currentUser.naam}</p>
-          </div>
-          <button onClick={onLogout} className="text-sm text-gray-600 hover:text-gray-900 px-4 py-2 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors font-medium">Uitloggen</button>
+          <div><p className="text-xs text-gray-500">Ingelogd als</p><p className="font-semibold text-gray-900">{currentUser.naam}</p></div>
+          <button onClick={onLogout} className="text-sm text-gray-600 px-4 py-2 bg-gray-50 rounded-xl hover:bg-gray-100 font-medium">Uitloggen</button>
         </div>
       </div>
     );
 
-    const Dashboard = ({ kinderen, trajecten, actiepunten, headerFoto, searchTerm, setSearchTerm, showCompleted, setShowCompleted, setShowModal, saveActiepunt, saveHeaderFoto }) => {
+    // ─── DASHBOARD ────────────────────────────────────────────────────────────────
+    const Dashboard = ({ kinderen, trajecten, actiepunten, afspraken, headerFoto, searchTerm, setSearchTerm, showCompleted, setShowCompleted, setShowModal, saveActiepunt, saveHeaderFoto }) => {
       const today = new Date(); today.setHours(0,0,0,0);
       const weekFromNow = new Date(today); weekFromNow.setDate(weekFromNow.getDate()+7);
 
-      let filtered = showCompleted ? actiepunten : actiepunten.filter(a => a.status !== 'afgerond');
-      if (searchTerm) filtered = filtered.filter(a => a.omschrijving.toLowerCase().includes(searchTerm.toLowerCase()));
+      let filtered = showCompleted ? actiepunten : actiepunten.filter(a=>a.status!=='afgerond');
+      if (searchTerm) filtered = filtered.filter(a=>a.omschrijving.toLowerCase().includes(searchTerm.toLowerCase()));
 
-      const overDatum = filtered.filter(a => a.deadline && new Date(a.deadline) < today);
-      const dezeWeek = filtered.filter(a => { if (!a.deadline) return false; const d = new Date(a.deadline); return d >= today && d <= weekFromNow; });
+      const overDatum = filtered.filter(a=>a.deadline&&new Date(a.deadline)<today);
+      const dezeWeek = filtered.filter(a=>{ if(!a.deadline) return false; const d=new Date(a.deadline); return d>=today&&d<=weekFromNow; });
 
-      const toggleComplete = async (a) => {
-        await saveActiepunt({ ...a, status: a.status === 'afgerond' ? 'open' : 'afgerond' });
-      };
+      const komendAfspraken = afspraken.filter(a=>{
+        if(!a.datum) return false;
+        const d = new Date(a.datum+'T'+(a.tijd||'00:00'));
+        return d >= today && a.status !== 'geannuleerd';
+      }).sort((a,b)=>new Date(a.datum+'T'+(a.tijd||'00:00'))-new Date(b.datum+'T'+(b.tijd||'00:00'))).slice(0,3);
+
+      const toggleComplete = async (a) => await saveActiepunt({...a, status: a.status==='afgerond'?'open':'afgerond'});
 
       return (
         <div className="space-y-6 pb-24">
@@ -287,15 +294,40 @@
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end">
                 <div className="p-6"><h2 className="text-2xl font-bold text-white">Overzicht Zorg Huize Lukas</h2></div>
               </div>
-              <button onClick={() => setShowModal({ type: 'headerFoto' })} className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm p-2 rounded-full hover:bg-white transition-colors">
-                <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+              <button onClick={()=>setShowModal({type:'headerFoto'})} className="absolute top-4 right-4 bg-white/90 p-2 rounded-full hover:bg-white">
+                <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
               </button>
             </div>
           ) : (
-            <div onClick={() => setShowModal({ type: 'headerFoto' })} className="w-full h-32 rounded-2xl bg-gradient-to-br from-indigo-100 to-purple-100 border-2 border-dashed border-indigo-300 flex items-center justify-center cursor-pointer hover:border-indigo-400 transition-all">
+            <div onClick={()=>setShowModal({type:'headerFoto'})} className="w-full h-32 rounded-2xl bg-gradient-to-br from-indigo-100 to-purple-100 border-2 border-dashed border-indigo-300 flex items-center justify-center cursor-pointer hover:border-indigo-400">
               <div className="text-center">
-                <svg className="w-8 h-8 text-indigo-500 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                <svg className="w-8 h-8 text-indigo-500 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/></svg>
                 <p className="text-sm font-medium text-indigo-700">Voeg een gezinsfoto toe</p>
+              </div>
+            </div>
+          )}
+
+          {/* Eerstvolgende afspraken */}
+          {komendAfspraken.length > 0 && (
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-5 rounded-2xl border-2 border-blue-200">
+              <h2 className="text-lg font-bold text-blue-900 mb-3">📅 Komende afspraken</h2>
+              <div className="space-y-2">
+                {komendAfspraken.map(af => {
+                  const kind = kinderen.find(k=>k.id===af.kind_id);
+                  const d = new Date(af.datum+'T'+(af.tijd||'00:00'));
+                  return (
+                    <div key={af.id} onClick={()=>setShowModal({type:'afspraak',data:af})} className="bg-white p-3 rounded-xl flex items-center gap-3 cursor-pointer hover:shadow-md transition-all">
+                      <div className="bg-blue-100 text-blue-700 rounded-xl p-2 text-center min-w-[48px]">
+                        <p className="text-xs font-bold">{d.toLocaleDateString('nl-NL',{month:'short'}).toUpperCase()}</p>
+                        <p className="text-lg font-bold leading-none">{d.getDate()}</p>
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-semibold text-gray-900 text-sm">{af.titel}</p>
+                        <p className="text-xs text-gray-500">{af.tijd && af.tijd} {kind && '• '+kind.naam} {af.locatie && '• '+af.locatie}</p>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -303,37 +335,37 @@
           <div>
             <div className="flex justify-between items-center mb-4">
               <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-              <button onClick={() => setShowModal({ type: 'actiepunt' })} className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-3 rounded-2xl shadow-lg">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+              <button onClick={()=>setShowModal({type:'actiepunt'})} className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-3 rounded-2xl shadow-lg">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/></svg>
               </button>
             </div>
             <div className="bg-white p-4 rounded-2xl border-2 border-gray-100 space-y-3 mb-6">
               <div className="relative">
-                <svg className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                <input type="text" placeholder="Zoek actiepunten..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none transition-colors" />
+                <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <input type="text" placeholder="Zoek actiepunten..." value={searchTerm} onChange={(e)=>setSearchTerm(e.target.value)} className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none" />
               </div>
-              <button onClick={() => setShowCompleted(!showCompleted)} className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${showCompleted ? 'bg-indigo-100 text-indigo-700 border-2 border-indigo-200' : 'bg-gray-100 text-gray-700 border-2 border-gray-200'}`}>
-                {showCompleted ? 'Verberg afgerond' : 'Toon afgerond'}
+              <button onClick={()=>setShowCompleted(!showCompleted)} className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${showCompleted?'bg-indigo-100 text-indigo-700 border-2 border-indigo-200':'bg-gray-100 text-gray-700 border-2 border-gray-200'}`}>
+                {showCompleted?'Verberg afgerond':'Toon afgerond'}
               </button>
             </div>
           </div>
 
-          {overDatum.length > 0 && (
+          {overDatum.length>0 && (
             <div className="bg-gradient-to-br from-red-50 to-orange-50 p-6 rounded-2xl border-2 border-red-200">
               <h2 className="text-xl font-bold text-red-900 mb-4">⚠️ Over datum ({overDatum.length})</h2>
-              <div className="space-y-3">{overDatum.map(a => <ActiepuntCard key={a.id} actiepunt={a} trajecten={trajecten} kinderen={kinderen} onClick={() => setShowModal({ type: 'actiepunt', data: a })} onToggle={() => toggleComplete(a)} />)}</div>
+              <div className="space-y-3">{overDatum.map(a=><ActiepuntCard key={a.id} actiepunt={a} trajecten={trajecten} kinderen={kinderen} onClick={()=>setShowModal({type:'actiepunt',data:a})} onToggle={()=>toggleComplete(a)}/>)}</div>
             </div>
           )}
-          {dezeWeek.length > 0 && (
+          {dezeWeek.length>0 && (
             <div className="bg-gradient-to-br from-orange-50 to-yellow-50 p-6 rounded-2xl border-2 border-orange-200">
               <h2 className="text-xl font-bold text-orange-900 mb-4">📅 Deze week ({dezeWeek.length})</h2>
-              <div className="space-y-3">{dezeWeek.map(a => <ActiepuntCard key={a.id} actiepunt={a} trajecten={trajecten} kinderen={kinderen} onClick={() => setShowModal({ type: 'actiepunt', data: a })} onToggle={() => toggleComplete(a)} />)}</div>
+              <div className="space-y-3">{dezeWeek.map(a=><ActiepuntCard key={a.id} actiepunt={a} trajecten={trajecten} kinderen={kinderen} onClick={()=>setShowModal({type:'actiepunt',data:a})} onToggle={()=>toggleComplete(a)}/>)}</div>
             </div>
           )}
-          {overDatum.length === 0 && dezeWeek.length === 0 && (
+          {overDatum.length===0&&dezeWeek.length===0&&(
             <div className="text-center py-16 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl border-2 border-green-200">
               <div className="bg-green-100 w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/></svg>
               </div>
               <p className="text-2xl font-bold text-green-900 mb-2">Alles onder controle!</p>
               <p className="text-green-700">Geen openstaande actiepunten 🎉</p>
@@ -344,25 +376,23 @@
     };
 
     const ActiepuntCard = ({ actiepunt, trajecten, kinderen, onClick, onToggle }) => {
-      const traject = trajecten.find(t => t.id === actiepunt.traject_id);
-      const kind = kinderen.find(k => k.id === traject?.kind_id);
+      const traject = trajecten.find(t=>t.id===actiepunt.traject_id);
+      const kind = kinderen.find(k=>k.id===traject?.kind_id);
       return (
         <div className="bg-white p-5 rounded-2xl border-2 border-gray-100 shadow-sm hover:shadow-lg transition-all">
           <div className="flex items-start gap-3">
-            <button onClick={(e) => { e.stopPropagation(); onToggle(); }} className="mt-1">
-              {actiepunt.status === 'afgerond'
-                ? <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
-                : <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" strokeWidth="2" /></svg>
+            <button onClick={(e)=>{e.stopPropagation();onToggle();}} className="mt-1">
+              {actiepunt.status==='afgerond'
+                ?<svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
+                :<svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" strokeWidth="2"/></svg>
               }
             </button>
             <div className="flex-1 cursor-pointer" onClick={onClick}>
-              <p className={`font-semibold text-gray-900 mb-1 ${actiepunt.status === 'afgerond' ? 'line-through text-gray-500' : ''}`}>{actiepunt.omschrijving}</p>
+              <p className={`font-semibold text-gray-900 mb-1 ${actiepunt.status==='afgerond'?'line-through text-gray-500':''}`}>{actiepunt.omschrijving}</p>
               <p className="text-sm text-gray-500">{traject?.naam} • {kind?.naam}</p>
               <div className="flex items-center gap-3 text-sm mt-2">
-                {actiepunt.deadline && <span className="text-gray-600">{new Date(actiepunt.deadline).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}</span>}
-                <span className={`px-3 py-1 rounded-full text-xs font-medium ${actiepunt.eigenaar === 'wij' ? 'bg-indigo-50 text-indigo-700' : 'bg-gray-100 text-gray-700'}`}>
-                  {actiepunt.toegewezen_aan || actiepunt.eigenaar}
-                </span>
+                {actiepunt.deadline&&<span className="text-gray-600">{new Date(actiepunt.deadline).toLocaleDateString('nl-NL',{day:'numeric',month:'short'})}</span>}
+                <span className={`px-3 py-1 rounded-full text-xs font-medium ${actiepunt.eigenaar==='wij'?'bg-indigo-50 text-indigo-700':'bg-gray-100 text-gray-700'}`}>{actiepunt.toegewezen_aan||actiepunt.eigenaar}</span>
               </div>
             </div>
           </div>
@@ -370,77 +400,71 @@
       );
     };
 
-    const KinderenView = ({ kinderen, trajecten, actiepunten, setShowModal, setCurrentView }) => (
+    // ─── KINDEREN ─────────────────────────────────────────────────────────────────
+    const KinderenView = ({ kinderen, trajecten, actiepunten, setShowModal }) => (
       <div className="space-y-6 pb-24">
         <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Kinderen</h1>
-            <p className="text-gray-600 mt-1">Beheer je kinderen en hun trajecten</p>
-          </div>
-          <button onClick={() => setShowModal({ type: 'kind' })} className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-3 rounded-2xl shadow-lg">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+          <div><h1 className="text-3xl font-bold text-gray-900">Kinderen</h1><p className="text-gray-600 mt-1">Beheer je kinderen</p></div>
+          <button onClick={()=>setShowModal({type:'kind'})} className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-3 rounded-2xl shadow-lg">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/></svg>
           </button>
         </div>
         <div className="grid gap-4">
-          {kinderen.map(kind => {
-            const kindTrajecten = trajecten.filter(t => t.kind_id === kind.id && t.status !== 'afgesloten');
-            const kindActies = actiepunten.filter(a => { const t = trajecten.find(t => t.id === a.traject_id); return t?.kind_id === kind.id && a.status !== 'afgerond'; });
+          {kinderen.map(kind=>{
+            const kt = trajecten.filter(t=>t.kind_id===kind.id&&t.status!=='afgesloten');
+            const ka = actiepunten.filter(a=>{ const t=trajecten.find(t=>t.id===a.traject_id); return t?.kind_id===kind.id&&a.status!=='afgerond'; });
             return (
               <div key={kind.id} className="bg-gradient-to-br from-white to-indigo-50 p-6 rounded-2xl border-2 border-indigo-100 shadow-sm hover:shadow-lg transition-all">
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-4">
                     <div className="bg-indigo-100 w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 overflow-hidden">
-                      {kind.foto ? <img src={kind.foto} alt={kind.naam} className="w-full h-full object-cover" /> : <svg className="w-7 h-7 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>}
+                      {kind.foto?<img src={kind.foto} alt={kind.naam} className="w-full h-full object-cover"/>:<svg className="w-7 h-7 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>}
                     </div>
                     <div>
                       <h3 className="font-bold text-xl text-gray-900">{kind.naam}</h3>
-                      {kind.geboortedatum && <p className="text-sm text-gray-600">{new Date(kind.geboortedatum).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })}</p>}
+                      {kind.geboortedatum&&<p className="text-sm text-gray-600">{new Date(kind.geboortedatum).toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'})}</p>}
                     </div>
                   </div>
-                  <button onClick={() => setShowModal({ type: 'kind', data: kind })} className="text-indigo-600 px-4 py-2 bg-white rounded-xl border-2 border-indigo-200 hover:border-indigo-300 transition-colors">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                  <button onClick={()=>setShowModal({type:'kind',data:kind})} className="text-indigo-600 p-2 bg-white rounded-xl border-2 border-indigo-200 hover:border-indigo-300">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                   </button>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-white p-4 rounded-xl border-2 border-gray-100"><span className="text-2xl font-bold text-gray-900">{kindTrajecten.length}</span><p className="text-sm text-gray-600">Actieve trajecten</p></div>
-                  <div className="bg-white p-4 rounded-xl border-2 border-gray-100"><span className="text-2xl font-bold text-gray-900">{kindActies.length}</span><p className="text-sm text-gray-600">Openstaande acties</p></div>
+                  <div className="bg-white p-4 rounded-xl border-2 border-gray-100"><span className="text-2xl font-bold text-gray-900">{kt.length}</span><p className="text-sm text-gray-600">Actieve trajecten</p></div>
+                  <div className="bg-white p-4 rounded-xl border-2 border-gray-100"><span className="text-2xl font-bold text-gray-900">{ka.length}</span><p className="text-sm text-gray-600">Openstaande acties</p></div>
                 </div>
               </div>
             );
           })}
         </div>
-        {kinderen.length === 0 && (
-          <div className="text-center py-16 bg-gradient-to-br from-gray-50 to-indigo-50 rounded-2xl border-2 border-dashed border-gray-300">
-            <p className="text-xl font-semibold text-gray-900 mb-2">Nog geen kinderen toegevoegd</p>
-            <button onClick={() => setShowModal({ type: 'kind' })} className="mt-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-6 py-3 rounded-xl font-medium shadow-lg">Voeg eerste kind toe</button>
-          </div>
-        )}
+        {kinderen.length===0&&<div className="text-center py-16 bg-gradient-to-br from-gray-50 to-indigo-50 rounded-2xl border-2 border-dashed border-gray-300">
+          <p className="text-xl font-semibold text-gray-900 mb-2">Nog geen kinderen</p>
+          <button onClick={()=>setShowModal({type:'kind'})} className="mt-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-6 py-3 rounded-xl font-medium shadow-lg">Voeg eerste kind toe</button>
+        </div>}
       </div>
     );
 
-    const TrajectenView = ({ trajecten, kinderen, actiepunten, interacties, organisaties, setShowModal, setCurrentView }) => {
-      const actief = trajecten.filter(t => t.status === 'actief');
+    // ─── TRAJECTEN ────────────────────────────────────────────────────────────────
+    const TrajectenView = ({ trajecten, kinderen, actiepunten, interacties, organisaties, documenten, setShowModal, saveActiepunt, saveDocument, deleteDocument, currentUser }) => {
+      const actief = trajecten.filter(t=>t.status==='actief');
       return (
         <div className="space-y-6 pb-24">
           <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Trajecten</h1>
-              <p className="text-gray-600 mt-1">Overzicht van alle lopende zaken</p>
-            </div>
-            <button onClick={() => setShowModal({ type: 'traject' })} className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-3 rounded-2xl shadow-lg">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+            <div><h1 className="text-3xl font-bold text-gray-900">Trajecten</h1><p className="text-gray-600 mt-1">Lopende zaken</p></div>
+            <button onClick={()=>setShowModal({type:'traject'})} className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-3 rounded-2xl shadow-lg">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/></svg>
             </button>
           </div>
           <div className="grid gap-4">
-            {actief.map(traject => {
-              const kind = kinderen.find(k => k.id === traject.kind_id);
-              const acties = actiepunten.filter(a => a.traject_id === traject.id && a.status !== 'afgerond');
-              const orgIds = traject.organisatie_ids || [];
-              const trajOrgs = organisaties.filter(o => orgIds.includes(o.id));
+            {actief.map(traject=>{
+              const kind = kinderen.find(k=>k.id===traject.kind_id);
+              const acties = actiepunten.filter(a=>a.traject_id===traject.id&&a.status!=='afgerond');
+              const trajOrgs = organisaties.filter(o=>(traject.organisatie_ids||[]).includes(o.id));
+              const trajDocs = documenten.filter(d=>d.traject_id===traject.id);
               return (
-                <div key={traject.id} onClick={() => setShowModal({ type: 'traject', data: traject })} className="bg-white p-6 rounded-2xl border-2 border-gray-100 shadow-sm hover:shadow-lg hover:border-indigo-200 transition-all cursor-pointer">
+                <div key={traject.id} className="bg-white p-6 rounded-2xl border-2 border-gray-100 shadow-sm hover:shadow-lg transition-all">
                   <div className="flex justify-between items-start mb-3">
-                    <div className="flex-1">
+                    <div className="flex-1 cursor-pointer" onClick={()=>setShowModal({type:'traject',data:traject})}>
                       <h3 className="font-bold text-lg text-gray-900 mb-1">{traject.naam}</h3>
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-sm text-gray-600">{kind?.naam}</span>
@@ -448,134 +472,301 @@
                         <span className="text-xs bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full font-medium">Actief</span>
                       </div>
                     </div>
-                    <svg className="w-6 h-6 text-gray-400 flex-shrink-0 ml-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                    <button onClick={()=>setShowModal({type:'actiepunt',data:{traject_id:traject.id}})} className="flex items-center gap-1 bg-indigo-50 text-indigo-700 border border-indigo-200 px-3 py-2 rounded-xl text-sm font-medium hover:bg-indigo-100 flex-shrink-0 ml-3">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/></svg>
+                      Actie
+                    </button>
                   </div>
-                  {trajOrgs.length > 0 && (
+                  {trajOrgs.length>0&&(
                     <div className="flex flex-wrap gap-2 mb-3">
-                      {trajOrgs.map(o => (
-                        <span key={o.id} className="text-xs bg-emerald-50 text-emerald-700 px-2 py-1 rounded-full font-medium border border-emerald-200">{o.naam}</span>
-                      ))}
+                      {trajOrgs.map(o=><span key={o.id} className="text-xs bg-emerald-50 text-emerald-700 px-2 py-1 rounded-full font-medium border border-emerald-200">{o.naam}</span>)}
                     </div>
                   )}
-                  <div className="text-sm text-gray-600">{acties.length} open acties</div>
+                  {acties.length>0&&(
+                    <div className="mt-3 pt-3 border-t border-gray-100 space-y-2">
+                      {acties.slice(0,3).map(a=>(
+                        <div key={a.id} onClick={()=>setShowModal({type:'actiepunt',data:a})} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded-lg">
+                          <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" strokeWidth="2"/></svg>
+                          <span className="text-sm text-gray-700 truncate">{a.omschrijving}</span>
+                          {a.deadline&&<span className="text-xs text-gray-400 flex-shrink-0">{new Date(a.deadline).toLocaleDateString('nl-NL',{day:'numeric',month:'short'})}</span>}
+                        </div>
+                      ))}
+                      {acties.length>3&&<p className="text-xs text-indigo-600 font-medium pl-6">+{acties.length-3} meer</p>}
+                    </div>
+                  )}
+                  {/* Documenten sectie */}
+                  <div className="mt-3 pt-3 border-t border-gray-100">
+                    <DocumentenSectie traject={traject} documenten={trajDocs} saveDocument={saveDocument} deleteDocument={deleteDocument} currentUser={currentUser} />
+                  </div>
                 </div>
               );
             })}
           </div>
-          {actief.length === 0 && (
-            <div className="text-center py-16 bg-gradient-to-br from-gray-50 to-purple-50 rounded-2xl border-2 border-dashed border-gray-300">
-              <p className="text-xl font-semibold text-gray-900 mb-2">Nog geen actieve trajecten</p>
-              <button onClick={() => setShowModal({ type: 'traject' })} className="mt-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-6 py-3 rounded-xl font-medium shadow-lg">Voeg eerste traject toe</button>
+          {actief.length===0&&<div className="text-center py-16 bg-gradient-to-br from-gray-50 to-purple-50 rounded-2xl border-2 border-dashed border-gray-300">
+            <p className="text-xl font-semibold text-gray-900 mb-2">Nog geen actieve trajecten</p>
+            <button onClick={()=>setShowModal({type:'traject'})} className="mt-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-6 py-3 rounded-xl font-medium shadow-lg">Voeg eerste traject toe</button>
+          </div>}
+        </div>
+      );
+    };
+
+    // ─── DOCUMENTEN SECTIE (binnen traject) ───────────────────────────────────────
+    const DocumentenSectie = ({ traject, documenten, saveDocument, deleteDocument, currentUser }) => {
+      const [uploading, setUploading] = useState(false);
+      const [expanded, setExpanded] = useState(false);
+
+      const handleUpload = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (file.size > 10*1024*1024) { alert('Bestand te groot (max 10MB)'); return; }
+        setUploading(true);
+        const reader = new FileReader();
+        reader.onload = async (ev) => {
+          const doc = {
+            id: Date.now().toString(),
+            traject_id: traject.id,
+            naam: file.name,
+            type: file.type,
+            grootte: file.size,
+            data: ev.target.result,
+            aangemaakt_door: currentUser.naam,
+            aangemaakt_op: new Date().toISOString()
+          };
+          await saveDocument(doc);
+          setUploading(false);
+        };
+        reader.onerror = () => { alert('Fout bij laden bestand'); setUploading(false); };
+        reader.readAsDataURL(file);
+        e.target.value = '';
+      };
+
+      const getFileIcon = (type) => {
+        if (type?.includes('pdf')) return '📄';
+        if (type?.includes('image')) return '🖼️';
+        if (type?.includes('word') || type?.includes('document')) return '📝';
+        return '📎';
+      };
+
+      const formatSize = (bytes) => {
+        if (!bytes) return '';
+        if (bytes < 1024) return bytes+'B';
+        if (bytes < 1024*1024) return (bytes/1024).toFixed(0)+'KB';
+        return (bytes/(1024*1024)).toFixed(1)+'MB';
+      };
+
+      return (
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <button onClick={()=>setExpanded(!expanded)} className="flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-gray-900">
+              <svg className={`w-4 h-4 transition-transform ${expanded?'rotate-90':''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7"/></svg>
+              📁 Documenten ({documenten.length})
+            </button>
+            <label className={`flex items-center gap-1 text-xs bg-gray-50 text-gray-600 border border-gray-200 px-3 py-1.5 rounded-lg cursor-pointer hover:bg-gray-100 ${uploading?'opacity-50':''}`}>
+              {uploading?'Uploaden...':'+ Toevoegen'}
+              <input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif" onChange={handleUpload} className="hidden" disabled={uploading} />
+            </label>
+          </div>
+          {expanded && documenten.length>0 && (
+            <div className="space-y-2 mt-2">
+              {documenten.map(doc=>(
+                <div key={doc.id} className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl">
+                  <span className="text-xl">{getFileIcon(doc.type)}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">{doc.naam}</p>
+                    <p className="text-xs text-gray-500">{formatSize(doc.grootte)} • {new Date(doc.aangemaakt_op).toLocaleDateString('nl-NL')}</p>
+                  </div>
+                  <div className="flex gap-2 flex-shrink-0">
+                    <a href={doc.data} download={doc.naam} className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    </a>
+                    <button onClick={()=>deleteDocument(doc.id)} className="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-100">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          {expanded && documenten.length===0 && <p className="text-xs text-gray-400 italic mt-1">Nog geen documenten toegevoegd</p>}
+        </div>
+      );
+    };
+
+    // ─── AFSPRAKEN VIEW ───────────────────────────────────────────────────────────
+    const AfsprakenView = ({ afspraken, kinderen, trajecten, organisaties, setShowModal, onDelete }) => {
+      const [confirmDelete, setConfirmDelete] = useState(null);
+      const [filter, setFilter] = useState('aankomend');
+
+      const now = new Date();
+      const sorted = [...afspraken].sort((a,b)=>new Date(a.datum+'T'+(a.tijd||'00:00'))-new Date(b.datum+'T'+(b.tijd||'00:00')));
+      const aankomend = sorted.filter(a=>{ const d=new Date(a.datum+'T'+(a.tijd||'00:00')); return d>=now&&a.status!=='geannuleerd'; });
+      const geweest = sorted.filter(a=>{ const d=new Date(a.datum+'T'+(a.tijd||'00:00')); return d<now||a.status==='geannuleerd'; }).reverse();
+      const visible = filter==='aankomend' ? aankomend : geweest;
+
+      const statusColors = {
+        'gepland':'bg-blue-50 text-blue-700 border-blue-200',
+        'geweest':'bg-green-50 text-green-700 border-green-200',
+        'verzet':'bg-orange-50 text-orange-700 border-orange-200',
+        'geannuleerd':'bg-red-50 text-red-700 border-red-200'
+      };
+
+      return (
+        <div className="space-y-6 pb-24">
+          <div className="flex justify-between items-center">
+            <div><h1 className="text-3xl font-bold text-gray-900">Afspraken</h1><p className="text-gray-600 mt-1">Planning en overzicht</p></div>
+            <button onClick={()=>setShowModal({type:'afspraak'})} className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-3 rounded-2xl shadow-lg">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/></svg>
+            </button>
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-white p-4 rounded-2xl border-2 border-gray-100 text-center">
+              <p className="text-3xl font-bold text-indigo-600">{aankomend.length}</p>
+              <p className="text-sm text-gray-600">Aankomend</p>
+            </div>
+            <div className="bg-white p-4 rounded-2xl border-2 border-gray-100 text-center">
+              <p className="text-3xl font-bold text-gray-500">{geweest.length}</p>
+              <p className="text-sm text-gray-600">Geweest</p>
+            </div>
+          </div>
+
+          {/* Filter tabs */}
+          <div className="flex bg-white rounded-2xl border-2 border-gray-100 p-1">
+            {['aankomend','geweest'].map(f=>(
+              <button key={f} onClick={()=>setFilter(f)} className={`flex-1 py-2 rounded-xl text-sm font-medium transition-colors ${filter===f?'bg-indigo-500 text-white':'text-gray-600 hover:text-gray-900'}`}>
+                {f==='aankomend'?'📅 Aankomend':'🕐 Geweest'}
+              </button>
+            ))}
+          </div>
+
+          <div className="space-y-4">
+            {visible.map(af=>{
+              const kind = kinderen.find(k=>k.id===af.kind_id);
+              const traject = trajecten.find(t=>t.id===af.traject_id);
+              const org = organisaties.find(o=>o.id===af.organisatie_id);
+              const d = new Date(af.datum+'T'+(af.tijd||'00:00'));
+              return (
+                <div key={af.id} className="bg-white p-5 rounded-2xl border-2 border-gray-100 shadow-sm hover:shadow-lg transition-all">
+                  <div className="flex items-start gap-4">
+                    <div className="bg-indigo-50 border-2 border-indigo-100 rounded-2xl p-3 text-center min-w-[56px] flex-shrink-0">
+                      <p className="text-xs font-bold text-indigo-500 uppercase">{d.toLocaleDateString('nl-NL',{month:'short'})}</p>
+                      <p className="text-2xl font-bold text-indigo-700 leading-none">{d.getDate()}</p>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2 mb-1">
+                        <h3 className="font-bold text-gray-900">{af.titel}</h3>
+                        <span className={`text-xs px-2 py-1 rounded-full border font-medium flex-shrink-0 ${statusColors[af.status]||statusColors['gepland']}`}>{af.status||'gepland'}</span>
+                      </div>
+                      {af.tijd&&<p className="text-sm text-gray-600 mb-1">🕐 {af.tijd}</p>}
+                      {af.locatie&&<p className="text-sm text-gray-600 mb-1">📍 {af.locatie}</p>}
+                      {kind&&<p className="text-sm text-gray-600 mb-1">👤 {kind.naam}</p>}
+                      {traject&&<p className="text-sm text-gray-500 mb-1">📋 {traject.naam}</p>}
+                      {org&&<p className="text-sm text-gray-500 mb-1">🏢 {org.naam}</p>}
+                      {af.wie&&<p className="text-sm text-gray-500 mb-1">👥 {af.wie}</p>}
+                      {af.notities&&<p className="text-sm text-gray-500 italic mt-2 border-t border-gray-100 pt-2">{af.notities}</p>}
+                      {af.verslag&&<div className="mt-2 pt-2 border-t border-gray-100"><p className="text-xs font-semibold text-gray-500 mb-1">VERSLAG</p><p className="text-sm text-gray-700">{af.verslag}</p></div>}
+                    </div>
+                  </div>
+                  <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100">
+                    <button onClick={()=>setShowModal({type:'afspraak',data:af})} className="flex-1 py-2 bg-indigo-50 text-indigo-700 rounded-xl text-sm font-medium hover:bg-indigo-100 border border-indigo-200">Bewerken</button>
+                    <button onClick={()=>setConfirmDelete(af)} className="py-2 px-4 bg-red-50 text-red-500 rounded-xl text-sm font-medium hover:bg-red-100 border border-red-200">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {visible.length===0&&(
+            <div className="text-center py-16 bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl border-2 border-dashed border-gray-300">
+              <p className="text-xl font-semibold text-gray-900 mb-2">{filter==='aankomend'?'Geen aankomende afspraken':'Geen afspraken geweest'}</p>
+              {filter==='aankomend'&&<button onClick={()=>setShowModal({type:'afspraak'})} className="mt-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-6 py-3 rounded-xl font-medium shadow-lg">Plan eerste afspraak</button>}
+            </div>
+          )}
+
+          {confirmDelete&&(
+            <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+              <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full">
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Afspraak verwijderen?</h3>
+                <p className="text-gray-600 mb-6">Weet je zeker dat je <strong>{confirmDelete.titel}</strong> wil verwijderen?</p>
+                <div className="flex gap-3">
+                  <button onClick={()=>setConfirmDelete(null)} className="flex-1 px-4 py-3 border-2 border-gray-200 text-gray-700 rounded-xl font-medium">Annuleren</button>
+                  <button onClick={async()=>{await onDelete(confirmDelete.id);setConfirmDelete(null);}} className="flex-1 bg-red-500 text-white py-3 rounded-xl font-medium">Verwijderen</button>
+                </div>
+              </div>
             </div>
           )}
         </div>
       );
     };
 
-    // ─── ORGANISATIES VIEW ───────────────────────────────────────────────────────
+    // ─── ORGANISATIES VIEW ────────────────────────────────────────────────────────
     const OrganisatiesView = ({ organisaties, trajecten, setShowModal, onDelete }) => {
       const [confirmDelete, setConfirmDelete] = useState(null);
-
-      const getTrajectCount = (orgId) => trajecten.filter(t => (t.organisatie_ids || []).includes(orgId)).length;
-
-      const typeColors = {
-        'Gemeente': 'bg-blue-50 text-blue-700 border-blue-200',
-        'Zorginstelling': 'bg-green-50 text-green-700 border-green-200',
-        'School': 'bg-yellow-50 text-yellow-700 border-yellow-200',
-        'Ziekenhuis': 'bg-red-50 text-red-700 border-red-200',
-        'Verzekeraar': 'bg-purple-50 text-purple-700 border-purple-200',
-        'Thuiszorg': 'bg-teal-50 text-teal-700 border-teal-200',
-        'GGZ': 'bg-pink-50 text-pink-700 border-pink-200',
-        'MEE': 'bg-orange-50 text-orange-700 border-orange-200',
-        'Wijkteam': 'bg-indigo-50 text-indigo-700 border-indigo-200',
-        'Anders': 'bg-gray-50 text-gray-700 border-gray-200',
-      };
-
+      const typeColors = {'Gemeente':'bg-blue-50 text-blue-700 border-blue-200','Zorginstelling':'bg-green-50 text-green-700 border-green-200','School':'bg-yellow-50 text-yellow-700 border-yellow-200','Ziekenhuis':'bg-red-50 text-red-700 border-red-200','Verzekeraar':'bg-purple-50 text-purple-700 border-purple-200','Thuiszorg':'bg-teal-50 text-teal-700 border-teal-200','GGZ':'bg-pink-50 text-pink-700 border-pink-200','MEE':'bg-orange-50 text-orange-700 border-orange-200','Wijkteam':'bg-indigo-50 text-indigo-700 border-indigo-200','Anders':'bg-gray-50 text-gray-700 border-gray-200'};
       return (
         <div className="space-y-6 pb-24">
           <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Organisaties</h1>
-              <p className="text-gray-600 mt-1">Instanties en contacten</p>
-            </div>
-            <button onClick={() => setShowModal({ type: 'organisatie' })} className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-3 rounded-2xl shadow-lg">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+            <div><h1 className="text-3xl font-bold text-gray-900">Organisaties</h1><p className="text-gray-600 mt-1">Instanties en contacten</p></div>
+            <button onClick={()=>setShowModal({type:'organisatie'})} className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-3 rounded-2xl shadow-lg">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/></svg>
             </button>
           </div>
-
-          {/* Summary by type */}
-          {organisaties.length > 0 && (
+          {organisaties.length>0&&(
             <div className="bg-white rounded-2xl border-2 border-gray-100 p-4">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Overzicht per type</p>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Per type</p>
               <div className="flex flex-wrap gap-2">
-                {[...new Set(organisaties.map(o => o.type).filter(Boolean))].map(type => {
-                  const count = organisaties.filter(o => o.type === type).length;
-                  return (
-                    <span key={type} className={`text-xs px-3 py-1 rounded-full font-medium border ${typeColors[type] || typeColors['Anders']}`}>
-                      {type} ({count})
-                    </span>
-                  );
-                })}
+                {[...new Set(organisaties.map(o=>o.type).filter(Boolean))].map(type=>(
+                  <span key={type} className={`text-xs px-3 py-1 rounded-full font-medium border ${typeColors[type]||typeColors['Anders']}`}>{type} ({organisaties.filter(o=>o.type===type).length})</span>
+                ))}
               </div>
             </div>
           )}
-
           <div className="grid gap-4">
-            {organisaties.map(org => {
-              const trajCount = getTrajectCount(org.id);
-              const colorClass = typeColors[org.type] || typeColors['Anders'];
+            {organisaties.map(org=>{
+              const tc = trajecten.filter(t=>(t.organisatie_ids||[]).includes(org.id)).length;
+              const cc = typeColors[org.type]||typeColors['Anders'];
               return (
                 <div key={org.id} className="bg-white p-6 rounded-2xl border-2 border-gray-100 shadow-sm hover:shadow-lg transition-all">
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2 flex-wrap">
                         <h3 className="font-bold text-lg text-gray-900">{org.naam}</h3>
-                        {org.type && <span className={`text-xs px-3 py-1 rounded-full font-medium border ${colorClass}`}>{org.type}</span>}
+                        {org.type&&<span className={`text-xs px-3 py-1 rounded-full font-medium border ${cc}`}>{org.type}</span>}
                       </div>
-                      {org.contactpersoon && <p className="text-sm text-gray-600 mb-1">👤 {org.contactpersoon}</p>}
-                      {org.telefoon && <p className="text-sm text-gray-600 mb-1">📞 {org.telefoon}</p>}
-                      {org.email && <p className="text-sm text-gray-600 mb-1">✉️ {org.email}</p>}
-                      {org.notities && <p className="text-sm text-gray-500 mt-2 italic">{org.notities}</p>}
+                      {org.contactpersoon&&<p className="text-sm text-gray-600 mb-1">👤 {org.contactpersoon}</p>}
+                      {org.telefoon&&<p className="text-sm text-gray-600 mb-1">📞 {org.telefoon}</p>}
+                      {org.email&&<p className="text-sm text-gray-600 mb-1">✉️ {org.email}</p>}
+                      {org.notities&&<p className="text-sm text-gray-500 mt-2 italic">{org.notities}</p>}
                     </div>
                     <div className="flex gap-2 ml-4 flex-shrink-0">
-                      <button onClick={() => setShowModal({ type: 'organisatie', data: org })} className="p-2 text-indigo-600 bg-indigo-50 rounded-xl hover:bg-indigo-100 transition-colors border border-indigo-200">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                      <button onClick={()=>setShowModal({type:'organisatie',data:org})} className="p-2 text-indigo-600 bg-indigo-50 rounded-xl hover:bg-indigo-100 border border-indigo-200">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                       </button>
-                      <button onClick={() => setConfirmDelete(org)} className="p-2 text-red-500 bg-red-50 rounded-xl hover:bg-red-100 transition-colors border border-red-200">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                      <button onClick={()=>setConfirmDelete(org)} className="p-2 text-red-500 bg-red-50 rounded-xl hover:bg-red-100 border border-red-200">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                       </button>
                     </div>
                   </div>
-                  {trajCount > 0 && (
-                    <div className="mt-3 pt-3 border-t border-gray-100">
-                      <p className="text-xs text-gray-500">Betrokken bij <span className="font-semibold text-indigo-600">{trajCount} traject{trajCount !== 1 ? 'en' : ''}</span></p>
-                    </div>
-                  )}
+                  {tc>0&&<div className="mt-3 pt-3 border-t border-gray-100"><p className="text-xs text-gray-500">Betrokken bij <span className="font-semibold text-indigo-600">{tc} traject{tc!==1?'en':''}</span></p></div>}
                 </div>
               );
             })}
           </div>
-
-          {organisaties.length === 0 && (
-            <div className="text-center py-16 bg-gradient-to-br from-gray-50 to-emerald-50 rounded-2xl border-2 border-dashed border-gray-300">
-              <div className="bg-gray-100 w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
-              </div>
-              <p className="text-xl font-semibold text-gray-900 mb-2">Nog geen organisaties toegevoegd</p>
-              <p className="text-gray-600 mb-4">Voeg instanties en contacten toe</p>
-              <button onClick={() => setShowModal({ type: 'organisatie' })} className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-6 py-3 rounded-xl font-medium shadow-lg">Voeg eerste organisatie toe</button>
-            </div>
-          )}
-
-          {/* Delete confirm dialog */}
-          {confirmDelete && (
+          {organisaties.length===0&&<div className="text-center py-16 bg-gradient-to-br from-gray-50 to-emerald-50 rounded-2xl border-2 border-dashed border-gray-300">
+            <p className="text-xl font-semibold text-gray-900 mb-2">Nog geen organisaties</p>
+            <button onClick={()=>setShowModal({type:'organisatie'})} className="mt-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-6 py-3 rounded-xl font-medium shadow-lg">Voeg eerste toe</button>
+          </div>}
+          {confirmDelete&&(
             <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
               <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full">
-                <h3 className="text-lg font-bold text-gray-900 mb-2">Organisatie verwijderen?</h3>
-                <p className="text-gray-600 mb-6">Weet je zeker dat je <strong>{confirmDelete.naam}</strong> wil verwijderen?</p>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Verwijderen?</h3>
+                <p className="text-gray-600 mb-6"><strong>{confirmDelete.naam}</strong> verwijderen?</p>
                 <div className="flex gap-3">
-                  <button onClick={() => setConfirmDelete(null)} className="flex-1 px-4 py-3 border-2 border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50">Annuleren</button>
-                  <button onClick={async () => { await onDelete(confirmDelete.id); setConfirmDelete(null); }} className="flex-1 bg-red-500 text-white py-3 rounded-xl font-medium hover:bg-red-600">Verwijderen</button>
+                  <button onClick={()=>setConfirmDelete(null)} className="flex-1 px-4 py-3 border-2 border-gray-200 text-gray-700 rounded-xl font-medium">Annuleren</button>
+                  <button onClick={async()=>{await onDelete(confirmDelete.id);setConfirmDelete(null);}} className="flex-1 bg-red-500 text-white py-3 rounded-xl font-medium">Verwijderen</button>
                 </div>
               </div>
             </div>
@@ -584,24 +775,26 @@
       );
     };
 
+    // ─── NAVIGATIE ────────────────────────────────────────────────────────────────
     const BottomNav = ({ currentView, setCurrentView }) => {
       const items = [
-        { id: 'dashboard', label: 'Dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
-        { id: 'kinderen', label: 'Kinderen', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' },
-        { id: 'trajecten', label: 'Trajecten', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
-        { id: 'organisaties', label: 'Instanties', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' },
+        { id:'dashboard', label:'Dashboard', icon:'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
+        { id:'kinderen', label:'Kinderen', icon:'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' },
+        { id:'trajecten', label:'Trajecten', icon:'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
+        { id:'afspraken', label:'Afspraken', icon:'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
+        { id:'organisaties', label:'Instanties', icon:'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' },
       ];
       return (
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-gray-100 shadow-2xl z-40">
-          <div className="max-w-2xl mx-auto flex justify-around px-2">
-            {items.map(item => {
-              const active = currentView === item.id;
+          <div className="max-w-2xl mx-auto flex justify-around px-1">
+            {items.map(item=>{
+              const active = currentView===item.id;
               return (
-                <button key={item.id} onClick={() => setCurrentView(item.id)} className={`flex flex-col items-center py-3 px-3 transition-all ${active ? 'text-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}>
-                  <div className={`p-2 rounded-xl transition-all ${active ? 'bg-indigo-100' : ''}`}>
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} /></svg>
+                <button key={item.id} onClick={()=>setCurrentView(item.id)} className={`flex flex-col items-center py-3 px-2 transition-all ${active?'text-indigo-600':'text-gray-500'}`}>
+                  <div className={`p-1.5 rounded-xl ${active?'bg-indigo-100':''}`}>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon}/></svg>
                   </div>
-                  <span className={`text-xs mt-1 font-medium ${active ? 'text-indigo-600' : 'text-gray-600'}`}>{item.label}</span>
+                  <span className={`text-xs mt-0.5 font-medium ${active?'text-indigo-600':'text-gray-500'}`}>{item.label}</span>
                 </button>
               );
             })}
@@ -612,183 +805,144 @@
 
     const FloatingActionButton = ({ setShowModal, currentView }) => {
       const [showMenu, setShowMenu] = useState(false);
-      if (currentView === 'organisaties') return (
+      if (currentView==='organisaties') return (
         <div className="fixed bottom-24 right-6 z-30">
-          <button onClick={() => setShowModal({ type: 'organisatie' })} className="w-14 h-14 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-full shadow-2xl">
-            <svg className="w-7 h-7 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+          <button onClick={()=>setShowModal({type:'organisatie'})} className="w-14 h-14 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-full shadow-2xl">
+            <svg className="w-7 h-7 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/></svg>
+          </button>
+        </div>
+      );
+      if (currentView==='afspraken') return (
+        <div className="fixed bottom-24 right-6 z-30">
+          <button onClick={()=>setShowModal({type:'afspraak'})} className="w-14 h-14 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-full shadow-2xl">
+            <svg className="w-7 h-7 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/></svg>
           </button>
         </div>
       );
       return (
         <div className="fixed bottom-24 right-6 z-30">
-          {showMenu && (
+          {showMenu&&(
             <div className="absolute bottom-16 right-0 bg-white rounded-2xl shadow-2xl border-2 border-gray-100 p-2 space-y-2 min-w-[180px]">
-              <button onClick={() => { setShowModal({ type: 'actiepunt' }); setShowMenu(false); }} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-indigo-50 rounded-xl transition-colors text-left">
-                <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+              <button onClick={()=>{setShowModal({type:'actiepunt'});setShowMenu(false);}} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-indigo-50 rounded-xl text-left">
+                <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
                 <span className="font-medium text-gray-900">Actiepunt</span>
               </button>
-              <button onClick={() => { setShowModal({ type: 'traject' }); setShowMenu(false); }} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-indigo-50 rounded-xl transition-colors text-left">
-                <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+              <button onClick={()=>{setShowModal({type:'traject'});setShowMenu(false);}} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-indigo-50 rounded-xl text-left">
+                <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 <span className="font-medium text-gray-900">Traject</span>
               </button>
             </div>
           )}
-          <button onClick={() => setShowMenu(!showMenu)} className={`w-14 h-14 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-full shadow-2xl transition-transform ${showMenu ? 'rotate-45' : ''}`}>
-            <svg className="w-7 h-7 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+          <button onClick={()=>setShowMenu(!showMenu)} className={`w-14 h-14 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-full shadow-2xl transition-transform ${showMenu?'rotate-45':''}`}>
+            <svg className="w-7 h-7 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/></svg>
           </button>
         </div>
       );
     };
 
-    const ModalManager = ({ showModal, setShowModal, currentUser, kinderen, trajecten, organisaties, saveKind, saveTraject, saveActiepunt, saveOrganisatie, saveHeaderFoto, headerFoto }) => {
-      if (showModal.type === 'kind') return <KindModal kind={showModal.data} onClose={() => setShowModal(null)} onSave={saveKind} currentUser={currentUser} />;
-      if (showModal.type === 'traject') return <TrajectModal traject={showModal.data} kinderen={kinderen} organisaties={organisaties} onClose={() => setShowModal(null)} onSave={saveTraject} currentUser={currentUser} />;
-      if (showModal.type === 'actiepunt') return <ActiepuntModal actiepunt={showModal.data} trajecten={trajecten} kinderen={kinderen} onClose={() => setShowModal(null)} onSave={saveActiepunt} currentUser={currentUser} />;
-      if (showModal.type === 'organisatie') return <OrganisatieModal organisatie={showModal.data} onClose={() => setShowModal(null)} onSave={saveOrganisatie} currentUser={currentUser} />;
-      if (showModal.type === 'headerFoto') return <HeaderFotoModal onClose={() => setShowModal(null)} onSave={saveHeaderFoto} headerFoto={headerFoto} />;
+    // ─── MODALS ───────────────────────────────────────────────────────────────────
+    const ModalManager = ({ showModal, setShowModal, currentUser, kinderen, trajecten, organisaties, saveKind, saveTraject, saveActiepunt, saveOrganisatie, saveAfspraak, saveHeaderFoto, headerFoto }) => {
+      if (showModal.type==='kind') return <KindModal kind={showModal.data} onClose={()=>setShowModal(null)} onSave={saveKind} currentUser={currentUser}/>;
+      if (showModal.type==='traject') return <TrajectModal traject={showModal.data} kinderen={kinderen} organisaties={organisaties} onClose={()=>setShowModal(null)} onSave={saveTraject} currentUser={currentUser}/>;
+      if (showModal.type==='actiepunt') return <ActiepuntModal actiepunt={showModal.data} trajecten={trajecten} kinderen={kinderen} onClose={()=>setShowModal(null)} onSave={saveActiepunt} currentUser={currentUser}/>;
+      if (showModal.type==='organisatie') return <OrganisatieModal organisatie={showModal.data} onClose={()=>setShowModal(null)} onSave={saveOrganisatie} currentUser={currentUser}/>;
+      if (showModal.type==='afspraak') return <AfspraakModal afspraak={showModal.data} kinderen={kinderen} trajecten={trajecten} organisaties={organisaties} onClose={()=>setShowModal(null)} onSave={saveAfspraak} currentUser={currentUser}/>;
+      if (showModal.type==='headerFoto') return <HeaderFotoModal onClose={()=>setShowModal(null)} onSave={saveHeaderFoto} headerFoto={headerFoto}/>;
       return null;
     };
 
-    // ─── ORGANISATIE MODAL ───────────────────────────────────────────────────────
-    const OrganisatieModal = ({ organisatie, onClose, onSave, currentUser }) => {
-      const [formData, setFormData] = useState(organisatie || {
+    // ─── AFSPRAAK MODAL ───────────────────────────────────────────────────────────
+    const AfspraakModal = ({ afspraak, kinderen, trajecten, organisaties, onClose, onSave, currentUser }) => {
+      const [formData, setFormData] = useState(afspraak || {
         id: Date.now().toString(),
-        naam: '',
-        type: '',
-        contactpersoon: '',
-        telefoon: '',
-        email: '',
-        notities: '',
+        titel: '', datum: '', tijd: '', locatie: '',
+        kind_id: '', traject_id: '', organisatie_id: '',
+        wie: 'Beide', status: 'gepland',
+        notities: '', verslag: '',
         aangemaakt_door: currentUser.naam,
         aangemaakt_op: new Date().toISOString()
       });
 
+      const filteredTrajecten = formData.kind_id ? trajecten.filter(t=>t.kind_id===formData.kind_id&&t.status!=='afgesloten') : trajecten.filter(t=>t.status!=='afgesloten');
+
       const handleSave = async () => {
-        if (!formData.naam) return;
-        const success = await onSave(formData);
-        if (success) onClose();
+        if (!formData.titel || !formData.datum) return;
+        if (await onSave(formData)) onClose();
       };
 
       return (
         <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
           <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full my-8">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">{organisatie ? 'Bewerk organisatie' : 'Nieuwe organisatie'}</h2>
-              <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
+              <h2 className="text-2xl font-bold text-gray-900">{afspraak?'Bewerk afspraak':'Nieuwe afspraak'}</h2>
+              <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full"><svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg></button>
             </div>
-            <div className="space-y-5">
+            <div className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Naam *</label>
-                <input type="text" placeholder="bijv. Gemeente Amsterdam, Thuiszorg Noord" value={formData.naam} onChange={(e) => setFormData({ ...formData, naam: e.target.value })} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none transition-colors" />
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Onderwerp / titel *</label>
+                <input type="text" placeholder="bijv. Gesprek met behandelaar" value={formData.titel} onChange={(e)=>setFormData({...formData,titel:e.target.value})} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none"/>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Datum *</label>
+                  <input type="date" value={formData.datum} onChange={(e)=>setFormData({...formData,datum:e.target.value})} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none"/>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Tijdstip</label>
+                  <input type="time" value={formData.tijd} onChange={(e)=>setFormData({...formData,tijd:e.target.value})} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none"/>
+                </div>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Type instantie</label>
-                <select value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none transition-colors">
-                  <option value="">Selecteer type</option>
-                  {ORG_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Locatie</label>
+                <input type="text" placeholder="Adres of videobellen" value={formData.locatie} onChange={(e)=>setFormData({...formData,locatie:e.target.value})} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none"/>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Kind</label>
+                <select value={formData.kind_id} onChange={(e)=>setFormData({...formData,kind_id:e.target.value,traject_id:''})} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none">
+                  <option value="">Selecteer kind (optioneel)</option>
+                  {kinderen.map(k=><option key={k.id} value={k.id}>{k.naam}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Contactpersoon</label>
-                <input type="text" placeholder="Naam contactpersoon" value={formData.contactpersoon} onChange={(e) => setFormData({ ...formData, contactpersoon: e.target.value })} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none transition-colors" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Telefoonnummer</label>
-                <input type="tel" placeholder="bijv. 020-1234567" value={formData.telefoon} onChange={(e) => setFormData({ ...formData, telefoon: e.target.value })} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none transition-colors" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">E-mailadres</label>
-                <input type="email" placeholder="bijv. contact@organisatie.nl" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none transition-colors" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Notities</label>
-                <textarea value={formData.notities} onChange={(e) => setFormData({ ...formData, notities: e.target.value })} placeholder="Extra informatie..." className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none transition-colors resize-none" rows={3} />
-              </div>
-              <button onClick={handleSave} disabled={!formData.naam} className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-3 rounded-xl font-medium hover:from-indigo-600 hover:to-purple-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
-                Opslaan
-              </button>
-            </div>
-          </div>
-        </div>
-      );
-    };
-
-    // ─── TRAJECT MODAL (met organisatie multi-select) ────────────────────────────
-    const TrajectModal = ({ traject, kinderen, organisaties, onClose, onSave, currentUser }) => {
-      const [formData, setFormData] = useState(traject || {
-        id: Date.now().toString(),
-        naam: '',
-        kind_id: '',
-        organisatie_ids: [],
-        status: 'actief',
-        startdatum: new Date().toISOString().split('T')[0],
-        omschrijving: '',
-        aangemaakt_door: currentUser.naam,
-        aangemaakt_op: new Date().toISOString()
-      });
-
-      const toggleOrg = (id) => {
-        const ids = formData.organisatie_ids || [];
-        setFormData({ ...formData, organisatie_ids: ids.includes(id) ? ids.filter(i => i !== id) : [...ids, id] });
-      };
-
-      const handleSave = async () => {
-        if (!formData.naam || !formData.kind_id) return;
-        const success = await onSave(formData);
-        if (success) onClose();
-      };
-
-      return (
-        <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
-          <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full my-8">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">{traject ? 'Bewerk traject' : 'Nieuw traject'}</h2>
-              <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            </div>
-            <div className="space-y-5">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Naam traject *</label>
-                <input type="text" placeholder="bijv. Rolstoel aanvraag, WMO indicatie" value={formData.naam} onChange={(e) => setFormData({ ...formData, naam: e.target.value })} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none transition-colors" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Voor kind *</label>
-                <select value={formData.kind_id} onChange={(e) => setFormData({ ...formData, kind_id: e.target.value })} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none transition-colors">
-                  <option value="">Selecteer kind</option>
-                  {kinderen.map(k => <option key={k.id} value={k.id}>{k.naam}</option>)}
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Traject</label>
+                <select value={formData.traject_id} onChange={(e)=>setFormData({...formData,traject_id:e.target.value})} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none">
+                  <option value="">Selecteer traject (optioneel)</option>
+                  {filteredTrajecten.map(t=><option key={t.id} value={t.id}>{t.naam}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Betrokken organisaties</label>
-                {organisaties.length === 0 ? (
-                  <p className="text-sm text-gray-400 italic px-4 py-3 border-2 border-dashed border-gray-200 rounded-xl">Nog geen organisaties aangemaakt. Voeg eerst een organisatie toe via het tabblad Instanties.</p>
-                ) : (
-                  <div className="space-y-2 max-h-48 overflow-y-auto border-2 border-gray-200 rounded-xl p-3">
-                    {organisaties.map(org => {
-                      const selected = (formData.organisatie_ids || []).includes(org.id);
-                      return (
-                        <label key={org.id} className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${selected ? 'bg-indigo-50' : 'hover:bg-gray-50'}`}>
-                          <input type="checkbox" checked={selected} onChange={() => toggleOrg(org.id)} className="w-4 h-4 text-indigo-600 rounded" />
-                          <div className="flex-1">
-                            <span className="font-medium text-gray-900 text-sm">{org.naam}</span>
-                            {org.type && <span className="ml-2 text-xs text-gray-500">{org.type}</span>}
-                          </div>
-                        </label>
-                      );
-                    })}
-                  </div>
-                )}
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Organisatie</label>
+                <select value={formData.organisatie_id} onChange={(e)=>setFormData({...formData,organisatie_id:e.target.value})} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none">
+                  <option value="">Selecteer organisatie (optioneel)</option>
+                  {organisaties.map(o=><option key={o.id} value={o.id}>{o.naam}</option>)}
+                </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Omschrijving</label>
-                <textarea value={formData.omschrijving} onChange={(e) => setFormData({ ...formData, omschrijving: e.target.value })} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none transition-colors resize-none" rows={3} />
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Wie gaat mee</label>
+                <select value={formData.wie} onChange={(e)=>setFormData({...formData,wie:e.target.value})} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none">
+                  <option value="JJ">JJ</option>
+                  <option value="Linda">Linda</option>
+                  <option value="Beide">Beide</option>
+                </select>
               </div>
-              <button onClick={handleSave} disabled={!formData.naam || !formData.kind_id} className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-3 rounded-xl font-medium hover:from-indigo-600 hover:to-purple-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
-                Opslaan
-              </button>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Status</label>
+                <select value={formData.status} onChange={(e)=>setFormData({...formData,status:e.target.value})} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none">
+                  <option value="gepland">Gepland</option>
+                  <option value="geweest">Geweest</option>
+                  <option value="verzet">Verzet</option>
+                  <option value="geannuleerd">Geannuleerd</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Voorbereiding / notities</label>
+                <textarea value={formData.notities} onChange={(e)=>setFormData({...formData,notities:e.target.value})} placeholder="Wat wil je bespreken of meenemen?" className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none resize-none" rows={3}/>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Verslag (na afloop)</label>
+                <textarea value={formData.verslag} onChange={(e)=>setFormData({...formData,verslag:e.target.value})} placeholder="Wat is er besproken? Wat zijn de uitkomsten?" className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none resize-none" rows={3}/>
+              </div>
+              <button onClick={handleSave} disabled={!formData.titel||!formData.datum} className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-3 rounded-xl font-medium shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">Opslaan</button>
             </div>
           </div>
         </div>
@@ -796,65 +950,87 @@
     };
 
     const KindModal = ({ kind, onClose, onSave, currentUser }) => {
-      const [formData, setFormData] = useState(kind || { id: Date.now().toString(), naam: '', geboortedatum: '', notities: '', foto: '', aangemaakt_door: currentUser.naam, aangemaakt_op: new Date().toISOString() });
+      const [formData, setFormData] = useState(kind||{id:Date.now().toString(),naam:'',geboortedatum:'',notities:'',foto:'',aangemaakt_door:currentUser.naam,aangemaakt_op:new Date().toISOString()});
       const [fotoLoading, setFotoLoading] = useState(false);
-
       const handleFotoUpload = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        if (file.size > 20 * 1024 * 1024) { alert('Foto te groot (max 20MB)'); return; }
-        if (!file.type.startsWith('image/')) { alert('Selecteer een afbeelding'); return; }
+        const file = e.target.files[0]; if(!file) return;
+        if(file.size>20*1024*1024){alert('Foto te groot (max 20MB)');return;}
+        if(!file.type.startsWith('image/')){alert('Selecteer een afbeelding');return;}
         setFotoLoading(true);
         const reader = new FileReader();
-        reader.onload = (ev) => { setFormData(p => ({ ...p, foto: ev.target.result })); setFotoLoading(false); };
-        reader.onerror = () => { alert('Fout bij laden foto'); setFotoLoading(false); };
+        reader.onload=(ev)=>{setFormData(p=>({...p,foto:ev.target.result}));setFotoLoading(false);};
+        reader.onerror=()=>{alert('Fout bij laden foto');setFotoLoading(false);};
         reader.readAsDataURL(file);
       };
-
-      const handleSave = async () => {
-        if (!formData.naam) return;
-        if (await onSave(formData)) onClose();
-      };
-
+      const handleSave = async () => { if(!formData.naam) return; if(await onSave(formData)) onClose(); };
       return (
         <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
           <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full my-8">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">{kind ? 'Bewerk kind' : 'Nieuw kind'}</h2>
-              <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full"><svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
+              <h2 className="text-2xl font-bold text-gray-900">{kind?'Bewerk kind':'Nieuw kind'}</h2>
+              <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full"><svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg></button>
             </div>
             <div className="space-y-5">
               <div className="flex justify-center">
                 <div className="relative">
                   <div className="w-32 h-32 rounded-2xl overflow-hidden bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center border-4 border-white shadow-lg">
-                    {fotoLoading ? <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-                      : formData.foto ? <img src={formData.foto} alt="Kind" className="w-full h-full object-cover" />
-                      : <svg className="w-16 h-16 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>}
+                    {fotoLoading?<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                      :formData.foto?<img src={formData.foto} alt="Kind" className="w-full h-full object-cover"/>
+                      :<svg className="w-16 h-16 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>}
                   </div>
                   <label className="absolute bottom-0 right-0 bg-indigo-600 text-white p-2 rounded-full cursor-pointer hover:bg-indigo-700 shadow-lg">
-                    <input type="file" accept="image/*" onChange={handleFotoUpload} className="hidden" disabled={fotoLoading} />
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                    <input type="file" accept="image/*" onChange={handleFotoUpload} className="hidden" disabled={fotoLoading}/>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/></svg>
                   </label>
-                  {formData.foto && !fotoLoading && (
-                    <button onClick={() => setFormData({ ...formData, foto: '' })} className="absolute top-0 right-0 bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600 shadow-lg">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                    </button>
-                  )}
+                  {formData.foto&&!fotoLoading&&<button onClick={()=>setFormData({...formData,foto:''})} className="absolute top-0 right-0 bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600 shadow-lg"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg></button>}
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Naam *</label>
-                <input type="text" value={formData.naam} onChange={(e) => setFormData({ ...formData, naam: e.target.value })} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none" />
+              <div><label className="block text-sm font-semibold text-gray-700 mb-2">Naam *</label><input type="text" value={formData.naam} onChange={(e)=>setFormData({...formData,naam:e.target.value})} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none"/></div>
+              <div><label className="block text-sm font-semibold text-gray-700 mb-2">Geboortedatum</label><input type="date" value={formData.geboortedatum} onChange={(e)=>setFormData({...formData,geboortedatum:e.target.value})} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none"/></div>
+              <div><label className="block text-sm font-semibold text-gray-700 mb-2">Notities</label><textarea value={formData.notities} onChange={(e)=>setFormData({...formData,notities:e.target.value})} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none resize-none" rows={3}/></div>
+              <button onClick={handleSave} disabled={!formData.naam} className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-3 rounded-xl font-medium shadow-lg disabled:opacity-50">Opslaan</button>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const TrajectModal = ({ traject, kinderen, organisaties, onClose, onSave, currentUser }) => {
+      const [formData, setFormData] = useState(traject||{id:Date.now().toString(),naam:'',kind_id:'',organisatie_ids:[],status:'actief',startdatum:new Date().toISOString().split('T')[0],omschrijving:'',aangemaakt_door:currentUser.naam,aangemaakt_op:new Date().toISOString()});
+      const toggleOrg = (id) => { const ids=formData.organisatie_ids||[]; setFormData({...formData,organisatie_ids:ids.includes(id)?ids.filter(i=>i!==id):[...ids,id]}); };
+      const handleSave = async () => { if(!formData.naam||!formData.kind_id) return; if(await onSave(formData)) onClose(); };
+      return (
+        <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full my-8">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">{traject?'Bewerk traject':'Nieuw traject'}</h2>
+              <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full"><svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg></button>
+            </div>
+            <div className="space-y-5">
+              <div><label className="block text-sm font-semibold text-gray-700 mb-2">Naam traject *</label><input type="text" placeholder="bijv. Rolstoel aanvraag" value={formData.naam} onChange={(e)=>setFormData({...formData,naam:e.target.value})} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none"/></div>
+              <div><label className="block text-sm font-semibold text-gray-700 mb-2">Voor kind *</label>
+                <select value={formData.kind_id} onChange={(e)=>setFormData({...formData,kind_id:e.target.value})} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none">
+                  <option value="">Selecteer kind</option>
+                  {kinderen.map(k=><option key={k.id} value={k.id}>{k.naam}</option>)}
+                </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Geboortedatum</label>
-                <input type="date" value={formData.geboortedatum} onChange={(e) => setFormData({ ...formData, geboortedatum: e.target.value })} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none" />
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Betrokken organisaties</label>
+                {organisaties.length===0?<p className="text-sm text-gray-400 italic px-4 py-3 border-2 border-dashed border-gray-200 rounded-xl">Voeg eerst organisaties toe via het tabblad Instanties.</p>:(
+                  <div className="space-y-2 max-h-48 overflow-y-auto border-2 border-gray-200 rounded-xl p-3">
+                    {organisaties.map(org=>{
+                      const sel=(formData.organisatie_ids||[]).includes(org.id);
+                      return (<label key={org.id} className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer ${sel?'bg-indigo-50':'hover:bg-gray-50'}`}>
+                        <input type="checkbox" checked={sel} onChange={()=>toggleOrg(org.id)} className="w-4 h-4 text-indigo-600 rounded"/>
+                        <span className="font-medium text-gray-900 text-sm">{org.naam}</span>
+                        {org.type&&<span className="ml-auto text-xs text-gray-500">{org.type}</span>}
+                      </label>);
+                    })}
+                  </div>
+                )}
               </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Notities</label>
-                <textarea value={formData.notities} onChange={(e) => setFormData({ ...formData, notities: e.target.value })} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none resize-none" rows={3} />
-              </div>
-              <button onClick={handleSave} disabled={!formData.naam} className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-3 rounded-xl font-medium shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">Opslaan</button>
+              <div><label className="block text-sm font-semibold text-gray-700 mb-2">Omschrijving</label><textarea value={formData.omschrijving} onChange={(e)=>setFormData({...formData,omschrijving:e.target.value})} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none resize-none" rows={3}/></div>
+              <button onClick={handleSave} disabled={!formData.naam||!formData.kind_id} className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-3 rounded-xl font-medium shadow-lg disabled:opacity-50">Opslaan</button>
             </div>
           </div>
         </div>
@@ -862,62 +1038,69 @@
     };
 
     const ActiepuntModal = ({ actiepunt, trajecten, kinderen, onClose, onSave, currentUser }) => {
-      const [formData, setFormData] = useState(actiepunt || { id: Date.now().toString(), traject_id: '', omschrijving: '', eigenaar: 'wij', toegewezen_aan: 'JJ', deadline: '', status: 'open', prioriteit: 'normaal', notities: '', aangemaakt_door: currentUser.naam, aangemaakt_op: new Date().toISOString() });
-
-      const handleSave = async () => {
-        if (!formData.traject_id || !formData.omschrijving) return;
-        if (await onSave(formData)) onClose();
-      };
-
+      const [formData, setFormData] = useState(actiepunt||{id:Date.now().toString(),traject_id:'',omschrijving:'',eigenaar:'wij',toegewezen_aan:'JJ',deadline:'',status:'open',prioriteit:'normaal',notities:'',aangemaakt_door:currentUser.naam,aangemaakt_op:new Date().toISOString()});
+      const handleSave = async () => { if(!formData.traject_id||!formData.omschrijving) return; if(await onSave(formData)) onClose(); };
       return (
         <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
           <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full my-8">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">{actiepunt ? 'Bewerk actiepunt' : 'Nieuw actiepunt'}</h2>
-              <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full"><svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
+              <h2 className="text-2xl font-bold text-gray-900">{actiepunt?'Bewerk actiepunt':'Nieuw actiepunt'}</h2>
+              <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full"><svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg></button>
             </div>
             <div className="space-y-5">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Traject *</label>
-                <select value={formData.traject_id} onChange={(e) => setFormData({ ...formData, traject_id: e.target.value })} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none">
+              <div><label className="block text-sm font-semibold text-gray-700 mb-2">Traject *</label>
+                <select value={formData.traject_id} onChange={(e)=>setFormData({...formData,traject_id:e.target.value})} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none">
                   <option value="">Selecteer traject</option>
-                  {trajecten.filter(t => t.status !== 'afgesloten').map(t => { const k = kinderen.find(k => k.id === t.kind_id); return <option key={t.id} value={t.id}>{t.naam} ({k?.naam})</option>; })}
+                  {trajecten.filter(t=>t.status!=='afgesloten').map(t=>{const k=kinderen.find(k=>k.id===t.kind_id);return <option key={t.id} value={t.id}>{t.naam} ({k?.naam})</option>;})}
                 </select>
               </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Omschrijving *</label>
-                <textarea value={formData.omschrijving} onChange={(e) => setFormData({ ...formData, omschrijving: e.target.value })} placeholder="Wat moet er gedaan worden?" className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none resize-none" rows={3} />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Eigenaar</label>
-                <select value={formData.eigenaar} onChange={(e) => setFormData({ ...formData, eigenaar: e.target.value })} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none">
-                  <option value="wij">Wij</option>
-                  <option value="zij">Zij (instantie)</option>
+              <div><label className="block text-sm font-semibold text-gray-700 mb-2">Omschrijving *</label><textarea value={formData.omschrijving} onChange={(e)=>setFormData({...formData,omschrijving:e.target.value})} placeholder="Wat moet er gedaan worden?" className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none resize-none" rows={3}/></div>
+              <div><label className="block text-sm font-semibold text-gray-700 mb-2">Eigenaar</label>
+                <select value={formData.eigenaar} onChange={(e)=>setFormData({...formData,eigenaar:e.target.value})} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none">
+                  <option value="wij">Wij</option><option value="zij">Zij (instantie)</option>
                 </select>
               </div>
-              {formData.eigenaar === 'wij' && (
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Toegewezen aan</label>
-                  <select value={formData.toegewezen_aan} onChange={(e) => setFormData({ ...formData, toegewezen_aan: e.target.value })} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none">
-                    <option value="JJ">JJ</option>
-                    <option value="Linda">Linda</option>
-                    <option value="Beide">Beide</option>
-                  </select>
-                </div>
-              )}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Deadline</label>
-                <input type="date" value={formData.deadline} onChange={(e) => setFormData({ ...formData, deadline: e.target.value })} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Prioriteit</label>
-                <select value={formData.prioriteit} onChange={(e) => setFormData({ ...formData, prioriteit: e.target.value })} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none">
-                  <option value="laag">Laag</option>
-                  <option value="normaal">Normaal</option>
-                  <option value="hoog">Hoog</option>
+              {formData.eigenaar==='wij'&&<div><label className="block text-sm font-semibold text-gray-700 mb-2">Toegewezen aan</label>
+                <select value={formData.toegewezen_aan} onChange={(e)=>setFormData({...formData,toegewezen_aan:e.target.value})} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none">
+                  <option value="JJ">JJ</option><option value="Linda">Linda</option><option value="Beide">Beide</option>
+                </select>
+              </div>}
+              <div><label className="block text-sm font-semibold text-gray-700 mb-2">Deadline</label><input type="date" value={formData.deadline} onChange={(e)=>setFormData({...formData,deadline:e.target.value})} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none"/></div>
+              <div><label className="block text-sm font-semibold text-gray-700 mb-2">Prioriteit</label>
+                <select value={formData.prioriteit} onChange={(e)=>setFormData({...formData,prioriteit:e.target.value})} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none">
+                  <option value="laag">Laag</option><option value="normaal">Normaal</option><option value="hoog">Hoog</option>
                 </select>
               </div>
-              <button onClick={handleSave} disabled={!formData.traject_id || !formData.omschrijving} className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-3 rounded-xl font-medium shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">Opslaan</button>
+              <button onClick={handleSave} disabled={!formData.traject_id||!formData.omschrijving} className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-3 rounded-xl font-medium shadow-lg disabled:opacity-50">Opslaan</button>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const OrganisatieModal = ({ organisatie, onClose, onSave, currentUser }) => {
+      const [formData, setFormData] = useState(organisatie||{id:Date.now().toString(),naam:'',type:'',contactpersoon:'',telefoon:'',email:'',notities:'',aangemaakt_door:currentUser.naam,aangemaakt_op:new Date().toISOString()});
+      const handleSave = async () => { if(!formData.naam) return; if(await onSave(formData)) onClose(); };
+      return (
+        <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full my-8">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">{organisatie?'Bewerk organisatie':'Nieuwe organisatie'}</h2>
+              <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full"><svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg></button>
+            </div>
+            <div className="space-y-5">
+              <div><label className="block text-sm font-semibold text-gray-700 mb-2">Naam *</label><input type="text" placeholder="bijv. Gemeente Amsterdam" value={formData.naam} onChange={(e)=>setFormData({...formData,naam:e.target.value})} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none"/></div>
+              <div><label className="block text-sm font-semibold text-gray-700 mb-2">Type</label>
+                <select value={formData.type} onChange={(e)=>setFormData({...formData,type:e.target.value})} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none">
+                  <option value="">Selecteer type</option>
+                  {ORG_TYPES.map(t=><option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+              <div><label className="block text-sm font-semibold text-gray-700 mb-2">Contactpersoon</label><input type="text" value={formData.contactpersoon} onChange={(e)=>setFormData({...formData,contactpersoon:e.target.value})} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none"/></div>
+              <div><label className="block text-sm font-semibold text-gray-700 mb-2">Telefoon</label><input type="tel" value={formData.telefoon} onChange={(e)=>setFormData({...formData,telefoon:e.target.value})} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none"/></div>
+              <div><label className="block text-sm font-semibold text-gray-700 mb-2">E-mail</label><input type="email" value={formData.email} onChange={(e)=>setFormData({...formData,email:e.target.value})} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none"/></div>
+              <div><label className="block text-sm font-semibold text-gray-700 mb-2">Notities</label><textarea value={formData.notities} onChange={(e)=>setFormData({...formData,notities:e.target.value})} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none resize-none" rows={3}/></div>
+              <button onClick={handleSave} disabled={!formData.naam} className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-3 rounded-xl font-medium shadow-lg disabled:opacity-50">Opslaan</button>
             </div>
           </div>
         </div>
@@ -927,46 +1110,38 @@
     const HeaderFotoModal = ({ onClose, onSave, headerFoto }) => {
       const [tempFoto, setTempFoto] = useState(headerFoto);
       const [fotoLoading, setFotoLoading] = useState(false);
-
       const handleFotoUpload = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        if (file.size > 20 * 1024 * 1024) { alert('Foto te groot (max 20MB)'); return; }
-        if (!file.type.startsWith('image/')) { alert('Selecteer een afbeelding'); return; }
+        const file = e.target.files[0]; if(!file) return;
+        if(file.size>20*1024*1024){alert('Foto te groot (max 20MB)');return;}
         setFotoLoading(true);
         const reader = new FileReader();
-        reader.onload = (ev) => { setTempFoto(ev.target.result); setFotoLoading(false); };
-        reader.onerror = () => { alert('Fout bij laden foto'); setFotoLoading(false); };
+        reader.onload=(ev)=>{setTempFoto(ev.target.result);setFotoLoading(false);};
+        reader.onerror=()=>{alert('Fout bij laden foto');setFotoLoading(false);};
         reader.readAsDataURL(file);
       };
-
       return (
         <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-gray-900">Header foto</h2>
-              <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full"><svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
+              <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full"><svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg></button>
             </div>
             <div className="space-y-5">
               <div className="relative w-full">
                 <div className="w-full h-48 rounded-2xl overflow-hidden bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center">
-                  {fotoLoading ? <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-                    : tempFoto ? <img src={tempFoto} alt="Header" className="w-full h-full object-cover" />
-                    : <p className="text-sm text-gray-600">Upload een gezinsfoto</p>}
+                  {fotoLoading?<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                    :tempFoto?<img src={tempFoto} alt="Header" className="w-full h-full object-cover"/>
+                    :<p className="text-sm text-gray-600">Upload een gezinsfoto</p>}
                 </div>
                 <label className="absolute bottom-4 right-4 bg-indigo-600 text-white p-3 rounded-full cursor-pointer hover:bg-indigo-700 shadow-lg">
-                  <input type="file" accept="image/*" onChange={handleFotoUpload} className="hidden" disabled={fotoLoading} />
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                  <input type="file" accept="image/*" onChange={handleFotoUpload} className="hidden" disabled={fotoLoading}/>
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/></svg>
                 </label>
-                {tempFoto && !fotoLoading && (
-                  <button onClick={() => setTempFoto('')} className="absolute top-4 right-4 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 shadow-lg">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                  </button>
-                )}
+                {tempFoto&&!fotoLoading&&<button onClick={()=>setTempFoto('')} className="absolute top-4 right-4 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 shadow-lg"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg></button>}
               </div>
               <div className="flex gap-3">
                 <button onClick={onClose} className="flex-1 px-4 py-3 border-2 border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50">Annuleren</button>
-                <button onClick={async () => { if (await onSave(tempFoto)) onClose(); }} className="flex-1 bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-3 rounded-xl font-medium shadow-lg">Opslaan</button>
+                <button onClick={async()=>{if(await onSave(tempFoto)) onClose();}} className="flex-1 bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-3 rounded-xl font-medium shadow-lg">Opslaan</button>
               </div>
             </div>
           </div>
@@ -974,7 +1149,7 @@
       );
     };
 
-    ReactDOM.render(<App />, document.getElementById('root'));
+    ReactDOM.render(<App/>, document.getElementById('root'));
   </script>
 </body>
 </html>
