@@ -858,7 +858,7 @@
             </div>}
             <div>
               <label className={labelCls}>Deadline</label>
-              <input type="date" value={fd.deadline} onChange={e=>setFd({...fd,deadline:e.target.value})} className={inputSmCls}/>
+              <input type="date" value={fd.deadline} onChange={e=>setFd({...fd,deadline:e.target.value})} className={inputCls}/>
             </div>
             <div><label className={labelCls}>Prioriteit</label>
               <select value={fd.prioriteit} onChange={e=>setFd({...fd,prioriteit:e.target.value})} className={inputCls}>
@@ -907,15 +907,13 @@
         <ModalWrap onClose={onClose} title={afspraak?'Bewerk afspraak':'Nieuwe afspraak'}>
           <div className="space-y-4">
             <div><label className={labelCls}>Onderwerp / titel *</label><input type="text" placeholder="bijv. Gesprek met behandelaar" value={fd.titel} onChange={e=>setFd({...fd,titel:e.target.value})} className={inputCls}/></div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className={labelCls}>Datum *</label>
-                <input type="date" value={fd.datum} onChange={e=>setFd({...fd,datum:e.target.value})} className={inputSmCls}/>
-              </div>
-              <div>
-                <label className={labelCls}>Tijdstip</label>
-                <input type="time" value={fd.tijd} onChange={e=>setFd({...fd,tijd:e.target.value})} className={inputSmCls}/>
-              </div>
+            <div>
+              <label className={labelCls}>Datum *</label>
+              <input type="date" value={fd.datum} onChange={e=>setFd({...fd,datum:e.target.value})} className={inputCls}/>
+            </div>
+            <div>
+              <label className={labelCls}>Tijdstip</label>
+              <input type="time" value={fd.tijd} onChange={e=>setFd({...fd,tijd:e.target.value})} className={inputCls}/>
             </div>
             <div><label className={labelCls}>Locatie</label><input type="text" placeholder="Adres of videobellen" value={fd.locatie} onChange={e=>setFd({...fd,locatie:e.target.value})} className={inputCls}/></div>
             <div><label className={labelCls}>Kind</label>
