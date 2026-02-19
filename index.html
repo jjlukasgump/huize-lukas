@@ -243,8 +243,8 @@
       let list = showDone ? actiepunten : actiepunten.filter(a=>a.status!=='afgerond');
       if (search) list = list.filter(a=>a.omschrijving?.toLowerCase().includes(search.toLowerCase()));
 
-      const over    = list.filter(a=>a.deadline && new Date(a.deadline)<today);
-      const dezeWk  = list.filter(a=>{ if(!a.deadline) return false; const d=new Date(a.deadline); return d>=today&&d<=week; });
+      const over   = list.filter(a=>a.deadline && new Date(a.deadline)<today && a.status!=='afgerond');
+      const dezeWk = list.filter(a=>{ if(!a.deadline) return false; const d=new Date(a.deadline); return d>=today&&d<=week; });
       const komend  = [...afspraken].filter(a=>{ if(!a.datum) return false; const d=new Date(a.datum+'T'+(a.tijd||'00:00')); return d>=today&&a.status!=='geannuleerd'; }).sort((a,b)=>new Date(a.datum+'T'+(a.tijd||'00:00'))-new Date(b.datum+'T'+(b.tijd||'00:00'))).slice(0,3);
 
       const toggle = async (a) => saveActiepunt({...a, status: a.status==='afgerond'?'open':'afgerond'});
@@ -815,7 +815,20 @@
 
     // ─── ACTIEPUNT MODAL ──────────────────────────────────────────────────────────
     const ActiepuntModal = ({ actiepunt, trajecten, kinderen, onClose, onSave, currentUser }) => {
-      const [fd, setFd] = useState(actiepunt||{id:Date.now().toString(),traject_id:'',omschrijving:'',eigenaar:'wij',toegewezen_aan:'JJ',deadline:'',status:'open',prioriteit:'normaal',notities:'',aangemaakt_door:currentUser.naam,aangemaakt_op:new Date().toISOString()});
+      const [fd, setFd] = useState({
+        id: Date.now().toString(),
+        traject_id: '',
+        omschrijving: '',
+        eigenaar: 'wij',
+        toegewezen_aan: 'JJ',
+        deadline: '',
+        status: 'open',
+        prioriteit: 'normaal',
+        notities: '',
+        aangemaakt_door: currentUser.naam,
+        aangemaakt_op: new Date().toISOString(),
+        ...actiepunt  // overschrijft defaults met eventuele meegegeven data
+      });
       const save = async () => {
         if(!fd.traject_id||!fd.omschrijving){alert('Vul een traject en omschrijving in.');return;}
         if(await onSave(fd)) onClose();
