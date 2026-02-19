@@ -13,7 +13,7 @@
 <body>
   <div id="root"></div>
   <script type="text/babel">
-    const { useState, useEffect, useCallback } = React;
+    const { useState, useEffect } = React;
     const SUPABASE_URL = 'https://ljupvfenzalnqnulyrvg.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxqdXB2ZmVuemFsbnFudWx5cnZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzMjc3MDYsImV4cCI6MjA4NjkwMzcwNn0.86TB7rW3V7xSkWdc9C_l8Rt6PwQWliidrWGKk9-HsN8';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -21,11 +21,8 @@
     const ORG_TYPES = ['Gemeente','Zorginstelling','School','Ziekenhuis','Verzekeraar','Thuiszorg','GGZ','MEE','Wijkteam','Anders'];
 
     const inputCls = "w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none transition-colors text-base";
-    const inputSmCls = "w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none transition-colors text-sm bg-white";
     const labelCls = "block text-sm font-semibold text-gray-700 mb-2";
     const btnPrimary = "w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-3 rounded-xl font-medium shadow-lg hover:from-indigo-600 hover:to-purple-700 transition-all";
-
-
 
     const ModalWrap = ({ onClose, title, children }) => (
       <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm z-50 overflow-y-auto">
@@ -33,7 +30,7 @@
           <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
-              <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+              <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full">
                 <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
               </button>
             </div>
@@ -43,19 +40,15 @@
       </div>
     );
 
-    // ─── DOCUMENT VIEWER ──────────────────────────────────────────────────────────
     const DocViewer = ({ doc, onClose }) => {
       const isImg = doc.type?.includes('image');
       const isPdf = doc.type?.includes('pdf');
       return (
-        <div className="fixed inset-0 bg-black bg-opacity-80 backdrop-blur-sm z-[60] flex flex-col">
+        <div className="fixed inset-0 bg-black bg-opacity-80 z-[60] flex flex-col">
           <div className="flex items-center justify-between p-4 bg-white/10 text-white">
             <p className="font-semibold truncate flex-1 mr-4">{doc.naam}</p>
-            <div className="flex gap-2 flex-shrink-0">
-              <a href={doc.data} download={doc.naam} className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-xl text-sm font-medium flex items-center gap-2">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                Download
-              </a>
+            <div className="flex gap-2">
+              <a href={doc.data} download={doc.naam} className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-xl text-sm font-medium">⬇ Download</a>
               <button onClick={onClose} className="p-2 bg-white/20 hover:bg-white/30 rounded-xl">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
               </button>
@@ -79,32 +72,28 @@
 
     // ─── APP ──────────────────────────────────────────────────────────────────────
     const App = () => {
-      const [currentUser, setCurrentUser] = useState(null);
+      const [user, setUser] = useState(null);
       const [loading, setLoading] = useState(true);
       useEffect(() => {
         const u = localStorage.getItem('huizelukas_user');
-        if (u) setCurrentUser(JSON.parse(u));
+        if (u) setUser(JSON.parse(u));
         setLoading(false);
       }, []);
-      const handleLogin = (naam, ww) => {
-        if (USERS[naam] === ww) {
-          const u = { naam };
-          localStorage.setItem('huizelukas_user', JSON.stringify(u));
-          setCurrentUser(u); return true;
-        }
+      const login = (naam, ww) => {
+        if (USERS[naam] === ww) { const u={naam}; localStorage.setItem('huizelukas_user',JSON.stringify(u)); setUser(u); return true; }
         return false;
       };
-      const handleLogout = () => { localStorage.removeItem('huizelukas_user'); setCurrentUser(null); };
-      if (loading) return <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 flex items-center justify-center"><div className="w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl animate-pulse mx-auto"></div></div>;
-      if (!currentUser) return <LoginScreen onLogin={handleLogin} />;
-      return <MainApp currentUser={currentUser} onLogout={handleLogout} />;
+      const logout = () => { localStorage.removeItem('huizelukas_user'); setUser(null); };
+      if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl animate-pulse"/></div>;
+      if (!user) return <LoginScreen onLogin={login}/>;
+      return <MainApp user={user} onLogout={logout}/>;
     };
 
     const LoginScreen = ({ onLogin }) => {
       const [naam, setNaam] = useState('');
       const [ww, setWw] = useState('');
-      const [error, setError] = useState('');
-      const handle = (e) => { e.preventDefault(); if (!onLogin(naam, ww)) { setError('Ongeldige gebruikersnaam of wachtwoord'); setWw(''); } };
+      const [err, setErr] = useState('');
+      const submit = (e) => { e.preventDefault(); if (!onLogin(naam,ww)) { setErr('Ongeldige gebruikersnaam of wachtwoord'); setWw(''); } };
       return (
         <div className="fixed inset-0 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
@@ -115,15 +104,15 @@
               <h2 className="text-2xl font-bold text-gray-900 mb-1">Welkom bij</h2>
               <p className="text-xl font-semibold text-indigo-600">Overzicht Zorg Huize Lukas</p>
             </div>
-            <form onSubmit={handle} className="space-y-4">
+            <form onSubmit={submit} className="space-y-4">
               <select value={naam} onChange={e=>setNaam(e.target.value)} className={inputCls}>
                 <option value="">Selecteer gebruiker</option>
                 <option value="JJ">JJ</option>
                 <option value="Linda">Linda</option>
               </select>
-              <input type="password" placeholder="Wachtwoord" value={ww} onChange={e=>setWw(e.target.value)} className={inputCls} />
-              {error && <p className="text-red-600 text-sm">{error}</p>}
-              <button type="submit" disabled={!naam||!ww} className={btnPrimary + " disabled:opacity-50 disabled:cursor-not-allowed"}>Inloggen</button>
+              <input type="password" placeholder="Wachtwoord" value={ww} onChange={e=>setWw(e.target.value)} className={inputCls}/>
+              {err && <p className="text-red-600 text-sm">{err}</p>}
+              <button type="submit" disabled={!naam||!ww} className={btnPrimary+" disabled:opacity-50"}>Inloggen</button>
             </form>
           </div>
         </div>
@@ -131,7 +120,7 @@
     };
 
     // ─── MAIN APP ─────────────────────────────────────────────────────────────────
-    const MainApp = ({ currentUser, onLogout }) => {
+    const MainApp = ({ user, onLogout }) => {
       const [view, setView] = useState('dashboard');
       const [kinderen, setKinderen] = useState([]);
       const [trajecten, setTrajecten] = useState([]);
@@ -141,19 +130,17 @@
       const [documenten, setDocumenten] = useState([]);
       const [headerFoto, setHeaderFoto] = useState('');
       const [modal, setModal] = useState(null);
+      const [viewerDoc, setViewerDoc] = useState(null);
       const [search, setSearch] = useState('');
       const [showDone, setShowDone] = useState(false);
       const [loading, setLoading] = useState(true);
-      const [viewerDoc, setViewerDoc] = useState(null); // FIX: doc viewer state
 
       useEffect(() => { loadAll(); }, []);
-
       useEffect(() => {
         let t;
-        const reset = () => { clearTimeout(t); t = setTimeout(() => { localStorage.removeItem('huizelukas_user'); onLogout(); }, 10*60*1000); };
+        const reset = () => { clearTimeout(t); t = setTimeout(() => { localStorage.removeItem('huizelukas_user'); onLogout(); }, 600000); };
         const evts = ['click','touchstart','keydown','scroll'];
-        evts.forEach(e => window.addEventListener(e, reset));
-        reset();
+        evts.forEach(e => window.addEventListener(e, reset)); reset();
         return () => { clearTimeout(t); evts.forEach(e => window.removeEventListener(e, reset)); };
       }, []);
 
@@ -175,38 +162,30 @@
         setLoading(false);
       };
 
-      const clean = obj => Object.fromEntries(Object.entries(obj).filter(([,v]) => v !== '' && v !== null && v !== undefined));
+      const clean = obj => Object.fromEntries(Object.entries(obj).filter(([,v])=>v!==''&&v!==null&&v!==undefined));
 
-      // FIX 5: gebruik functionele setter voor setList zodat stale closure geen probleem is
       const makeSave = (table, setList) => async (item) => {
         try {
           const c = clean(item);
-          if (item.id) {
-            // probeer update, als geen rij gevonden doe insert
-            const { data: existing } = await supabase.from(table).select('id').eq('id', item.id).single();
-            if (existing) {
-              const {error} = await supabase.from(table).update(c).eq('id', item.id);
-              if (error) throw error;
-              setList(prev => prev.map(x => x.id === item.id ? item : x));
-            } else {
-              const {data, error} = await supabase.from(table).insert([c]).select();
-              if (error) throw error;
-              setList(prev => [...prev, data&&data[0] ? data[0] : item]);
-            }
-          } else {
-            const {data, error} = await supabase.from(table).insert([c]).select();
+          const { data: ex } = await supabase.from(table).select('id').eq('id',item.id).single();
+          if (ex) {
+            const {error} = await supabase.from(table).update(c).eq('id',item.id);
             if (error) throw error;
-            setList(prev => [...prev, data&&data[0] ? data[0] : item]);
+            setList(prev => prev.map(x => x.id===item.id ? item : x));
+          } else {
+            const {data,error} = await supabase.from(table).insert([c]).select();
+            if (error) throw error;
+            setList(prev => [...prev, data?.[0]||item]);
           }
           return true;
         } catch(e) { alert('Fout bij opslaan: '+e.message); return false; }
       };
 
-      const makeDelete = (table, setList) => async (id) => {
+      const makeDel = (table, setList) => async (id) => {
         try {
-          const {error} = await supabase.from(table).delete().eq('id', id);
+          const {error} = await supabase.from(table).delete().eq('id',id);
           if (error) throw error;
-          setList(prev => prev.filter(x => x.id !== id)); return true;
+          setList(prev => prev.filter(x=>x.id!==id)); return true;
         } catch(e) { alert('Fout bij verwijderen: '+e.message); return false; }
       };
 
@@ -216,61 +195,55 @@
       const saveOrganisatie = makeSave('organisaties', setOrganisaties);
       const saveAfspraak    = makeSave('afspraken', setAfspraken);
       const saveDocument    = makeSave('documenten', setDocumenten);
-      const delOrganisatie  = makeDelete('organisaties', setOrganisaties);
-      const delAfspraak     = makeDelete('afspraken', setAfspraken);
-      const delDocument     = makeDelete('documenten', setDocumenten);
-      // FIX 3: actiepunten kunnen nu ook verwijderd worden
-      const delActiepunt    = makeDelete('actiepunten', setActiepunten);
+      const delOrganisatie  = makeDel('organisaties', setOrganisaties);
+      const delAfspraak     = makeDel('afspraken', setAfspraken);
+      const delDocument     = makeDel('documenten', setDocumenten);
+      const delActiepunt    = makeDel('actiepunten', setActiepunten);
 
       const saveHeaderFoto = async (foto) => {
-        try {
-          await supabase.from('instellingen').update({header_foto: foto}).eq('id', 'settings');
-          setHeaderFoto(foto); return true;
-        } catch(e) { alert('Fout: '+e.message); return false; }
+        try { await supabase.from('instellingen').update({header_foto:foto}).eq('id','settings'); setHeaderFoto(foto); return true; }
+        catch(e) { alert('Fout: '+e.message); return false; }
       };
 
       const exportData = () => {
-        const data = { exportdatum: new Date().toISOString(), kinderen, trajecten, actiepunten, organisaties, afspraken };
-        const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+        const blob = new Blob([JSON.stringify({exportdatum:new Date().toISOString(),kinderen,trajecten,actiepunten,organisaties,afspraken},null,2)],{type:'application/json'});
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url; a.download = `huize-lukas-backup-${new Date().toISOString().split('T')[0]}.json`;
-        a.click(); URL.revokeObjectURL(url);
+        const a = document.createElement('a'); a.href=url; a.download=`huize-lukas-${new Date().toISOString().split('T')[0]}.json`; a.click(); URL.revokeObjectURL(url);
       };
 
       if (loading) return <div className="min-h-screen flex items-center justify-center"><p className="text-gray-500">Laden...</p></div>;
 
-      const props = { kinderen, trajecten, actiepunten, organisaties, afspraken, documenten, setModal, saveActiepunt, delActiepunt, saveDocument, delDocument, currentUser, setViewerDoc };
+      const shared = { kinderen, trajecten, actiepunten, organisaties, afspraken, documenten, setModal, saveActiepunt, delActiepunt, saveDocument, delDocument, currentUser:user, setViewerDoc };
 
       return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 via-indigo-50 to-purple-50">
           <div className="max-w-2xl mx-auto p-4">
             <div className="bg-white rounded-2xl shadow-sm p-4 mb-6 border-2 border-gray-100">
               <div className="flex justify-between items-center">
-                <div><p className="text-xs text-gray-500">Ingelogd als</p><p className="font-semibold text-gray-900">{currentUser.naam}</p></div>
+                <div><p className="text-xs text-gray-500">Ingelogd als</p><p className="font-semibold text-gray-900">{user.naam}</p></div>
                 <div className="flex gap-2">
-                  <button onClick={exportData} title="Backup downloaden" className="text-sm px-3 py-2 bg-gray-50 rounded-xl hover:bg-gray-100 font-medium">💾</button>
-                  <button onClick={onLogout} className="text-sm text-gray-600 px-4 py-2 bg-gray-50 rounded-xl hover:bg-gray-100 font-medium">Uitloggen</button>
+                  <button onClick={exportData} className="text-sm px-3 py-2 bg-gray-50 rounded-xl hover:bg-gray-100">💾</button>
+                  <button onClick={onLogout} className="text-sm text-gray-600 px-4 py-2 bg-gray-50 rounded-xl hover:bg-gray-100">Uitloggen</button>
                 </div>
               </div>
             </div>
 
-            {view==='dashboard'    && <Dashboard {...props} headerFoto={headerFoto} search={search} setSearch={setSearch} showDone={showDone} setShowDone={setShowDone} saveHeaderFoto={saveHeaderFoto} />}
-            {view==='kinderen'     && <KinderenView {...props} />}
-            {view==='trajecten'    && <TrajectenView {...props} />}
-            {view==='afspraken'    && <AfsprakenView {...props} onDelAfspraak={delAfspraak} />}
-            {view==='organisaties' && <OrganisatiesView {...props} onDelOrg={delOrganisatie} />}
+            {view==='dashboard'    && <Dashboard    {...shared} headerFoto={headerFoto} search={search} setSearch={setSearch} showDone={showDone} setShowDone={setShowDone} saveHeaderFoto={saveHeaderFoto}/>}
+            {view==='kinderen'     && <KinderenView {...shared}/>}
+            {view==='trajecten'    && <TrajectenView {...shared}/>}
+            {view==='afspraken'    && <AfsprakenView {...shared} onDelAfspraak={delAfspraak}/>}
+            {view==='organisaties' && <OrganisatiesView {...shared} onDelOrg={delOrganisatie}/>}
 
-            <BottomNav view={view} setView={setView} />
-            <FAB setModal={setModal} view={view} />
+            <BottomNav view={view} setView={setView}/>
+            <FAB setModal={setModal} view={view}/>
 
-            {modal && <ModalManager modal={modal} setModal={setModal} currentUser={currentUser}
+            {modal && <ModalManager modal={modal} setModal={setModal} currentUser={user}
               kinderen={kinderen} trajecten={trajecten} organisaties={organisaties}
               saveKind={saveKind} saveTraject={saveTraject} saveActiepunt={saveActiepunt}
               saveOrganisatie={saveOrganisatie} saveAfspraak={saveAfspraak}
-              saveHeaderFoto={saveHeaderFoto} headerFoto={headerFoto} />}
+              saveHeaderFoto={saveHeaderFoto} headerFoto={headerFoto}/>}
 
-            {viewerDoc && <DocViewer doc={viewerDoc} onClose={()=>setViewerDoc(null)} />}
+            {viewerDoc && <DocViewer doc={viewerDoc} onClose={()=>setViewerDoc(null)}/>}
           </div>
         </div>
       );
@@ -279,18 +252,16 @@
     // ─── DASHBOARD ────────────────────────────────────────────────────────────────
     const Dashboard = ({ kinderen, trajecten, actiepunten, afspraken, headerFoto, search, setSearch, showDone, setShowDone, setModal, saveActiepunt, delActiepunt, saveHeaderFoto }) => {
       const today = new Date(); today.setHours(0,0,0,0);
-      const week  = new Date(today); week.setDate(week.getDate()+7);
-      const parseDate = (str) => { if(!str) return null; const [y,m,d]=str.split('-'); return new Date(+y, +m-1, +d); };
+      const week = new Date(today); week.setDate(week.getDate()+7);
+      const pd = (s) => { if(!s) return null; const [y,m,d]=s.split('-'); return new Date(+y,+m-1,+d); };
+      const toD = (a) => { if(!a.datum) return new Date(0); const d=new Date(a.datum+'T'+(a.tijd||'00:00')); return isNaN(d)?new Date(0):d; };
 
       let list = showDone ? actiepunten : actiepunten.filter(a=>a.status!=='afgerond');
       if (search) list = list.filter(a=>a.omschrijving?.toLowerCase().includes(search.toLowerCase()));
-
-      const over   = list.filter(a=>{ const d=parseDate(a.deadline); return d&&d<today&&a.status!=='afgerond'; });
-      const dezeWk = list.filter(a=>{ const d=parseDate(a.deadline); return d&&d>=today&&d<=week; });
-      // FIX 6: guard op lege datum
-      const komend = [...afspraken].filter(a=>{ if(!a.datum) return false; const d=new Date(a.datum+'T'+(a.tijd||'00:00')); return !isNaN(d)&&d>=today&&a.status!=='geannuleerd'; }).sort((a,b)=>new Date(a.datum+'T'+(a.tijd||'00:00'))-new Date(b.datum+'T'+(b.tijd||'00:00'))).slice(0,3);
-
-      const toggle = async (a) => saveActiepunt({...a, status: a.status==='afgerond'?'open':'afgerond'});
+      const over   = list.filter(a=>{ const d=pd(a.deadline); return d&&d<today&&a.status!=='afgerond'; });
+      const dezeWk = list.filter(a=>{ const d=pd(a.deadline); return d&&d>=today&&d<=week; });
+      const komend = [...afspraken].filter(a=>toD(a)>=today&&a.status!=='geannuleerd').sort((a,b)=>toD(a)-toD(b)).slice(0,3);
+      const toggle = (a) => saveActiepunt({...a, status:a.status==='afgerond'?'open':'afgerond'});
 
       return (
         <div className="space-y-6 pb-24">
@@ -300,12 +271,12 @@
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end">
                 <div className="p-6"><h2 className="text-2xl font-bold text-white">Overzicht Zorg Huize Lukas</h2></div>
               </div>
-              <button onClick={()=>setModal({type:'headerFoto'})} className="absolute top-4 right-4 bg-white/90 p-2 rounded-full hover:bg-white">
+              <button onClick={()=>setModal({type:'headerFoto'})} className="absolute top-4 right-4 bg-white/90 p-2 rounded-full">
                 <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
               </button>
             </div>
           ) : (
-            <div onClick={()=>setModal({type:'headerFoto'})} className="w-full h-32 rounded-2xl bg-gradient-to-br from-indigo-100 to-purple-100 border-2 border-dashed border-indigo-300 flex items-center justify-center cursor-pointer hover:border-indigo-400">
+            <div onClick={()=>setModal({type:'headerFoto'})} className="w-full h-32 rounded-2xl bg-gradient-to-br from-indigo-100 to-purple-100 border-2 border-dashed border-indigo-300 flex items-center justify-center cursor-pointer">
               <div className="text-center">
                 <svg className="w-8 h-8 text-indigo-500 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/></svg>
                 <p className="text-sm font-medium text-indigo-700">Voeg een gezinsfoto toe</p>
@@ -318,10 +289,10 @@
               <h2 className="text-lg font-bold text-blue-900 mb-3">📅 Komende afspraken</h2>
               <div className="space-y-2">
                 {komend.map(af=>{
-                  const kind = kinderen.find(k=>k.id===af.kind_id);
-                  const d = new Date(af.datum+'T'+(af.tijd||'00:00'));
+                  const kind=kinderen.find(k=>k.id===af.kind_id);
+                  const d=toD(af);
                   return (
-                    <div key={af.id} onClick={()=>setModal({type:'afspraak',data:af})} className="bg-white p-3 rounded-xl flex items-center gap-3 cursor-pointer hover:shadow-md transition-all">
+                    <div key={af.id} onClick={()=>setModal({type:'afspraak',data:af})} className="bg-white p-3 rounded-xl flex items-center gap-3 cursor-pointer hover:shadow-md">
                       <div className="bg-blue-100 text-blue-700 rounded-xl p-2 text-center min-w-[48px]">
                         <p className="text-xs font-bold uppercase">{d.toLocaleDateString('nl-NL',{month:'short'})}</p>
                         <p className="text-lg font-bold leading-none">{d.getDate()}</p>
@@ -349,7 +320,7 @@
                 <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                 <input type="text" placeholder="Zoek actiepunten..." value={search} onChange={e=>setSearch(e.target.value)} className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none"/>
               </div>
-              <button onClick={()=>setShowDone(!showDone)} className={`px-4 py-2 rounded-xl text-sm font-medium border-2 transition-colors ${showDone?'bg-indigo-100 text-indigo-700 border-indigo-200':'bg-gray-100 text-gray-700 border-gray-200'}`}>
+              <button onClick={()=>setShowDone(!showDone)} className={`px-4 py-2 rounded-xl text-sm font-medium border-2 ${showDone?'bg-indigo-100 text-indigo-700 border-indigo-200':'bg-gray-100 text-gray-700 border-gray-200'}`}>
                 {showDone?'Verberg afgerond':'Toon afgerond'}
               </button>
             </div>
@@ -400,8 +371,7 @@
                 {a.prioriteit==='hoog'&&<span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-600">Hoog</span>}
               </div>
             </div>
-            {/* FIX 3: verwijderknop op actiepunt */}
-            <button onClick={e=>{e.stopPropagation();if(confirm('Actiepunt verwijderen?')) onDelete();}} className="mt-1 p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg flex-shrink-0">
+            <button onClick={e=>{e.stopPropagation();if(window.confirm('Actiepunt verwijderen?'))onDelete();}} className="mt-1 p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg flex-shrink-0">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
             </button>
           </div>
@@ -420,8 +390,8 @@
         </div>
         <div className="grid gap-4">
           {kinderen.map(kind=>{
-            const kt = trajecten.filter(t=>t.kind_id===kind.id&&t.status!=='afgesloten');
-            const ka = actiepunten.filter(a=>{ const t=trajecten.find(t=>t.id===a.traject_id); return t?.kind_id===kind.id&&a.status!=='afgerond'; });
+            const kt=trajecten.filter(t=>t.kind_id===kind.id&&t.status!=='afgesloten');
+            const ka=actiepunten.filter(a=>{ const t=trajecten.find(t=>t.id===a.traject_id); return t?.kind_id===kind.id&&a.status!=='afgerond'; });
             return (
               <div key={kind.id} className="bg-gradient-to-br from-white to-indigo-50 p-6 rounded-2xl border-2 border-indigo-100 shadow-sm">
                 <div className="flex justify-between items-start mb-4">
@@ -434,7 +404,7 @@
                       {kind.geboortedatum&&<p className="text-sm text-gray-600">{new Date(kind.geboortedatum).toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'})}</p>}
                     </div>
                   </div>
-                  <button onClick={()=>setModal({type:'kind',data:kind})} className="p-2 text-indigo-600 bg-white rounded-xl border-2 border-indigo-200 hover:border-indigo-300">
+                  <button onClick={()=>setModal({type:'kind',data:kind})} className="p-2 text-indigo-600 bg-white rounded-xl border-2 border-indigo-200">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                   </button>
                 </div>
@@ -442,12 +412,7 @@
                   <div className="bg-white p-4 rounded-xl border-2 border-gray-100"><span className="text-2xl font-bold text-gray-900">{kt.length}</span><p className="text-sm text-gray-600">Actieve trajecten</p></div>
                   <div className="bg-white p-4 rounded-xl border-2 border-gray-100"><span className="text-2xl font-bold text-gray-900">{ka.length}</span><p className="text-sm text-gray-600">Openstaande acties</p></div>
                 </div>
-                {kind.notities&&(
-                  <div className="pt-3 border-t-2 border-indigo-100">
-                    <p className="text-xs font-semibold text-indigo-700 uppercase tracking-wide mb-1">Notities</p>
-                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{kind.notities}</p>
-                  </div>
-                )}
+                {kind.notities&&<div className="pt-3 border-t-2 border-indigo-100"><p className="text-xs font-semibold text-indigo-700 uppercase tracking-wide mb-1">Notities</p><p className="text-sm text-gray-700 whitespace-pre-wrap">{kind.notities}</p></div>}
               </div>
             );
           })}
@@ -469,12 +434,12 @@
           </div>
           <div className="grid gap-4">
             {actief.map(tr=>{
-              const kind = kinderen.find(k=>k.id===tr.kind_id);
-              const acties = actiepunten.filter(a=>a.traject_id===tr.id&&a.status!=='afgerond');
-              const orgs = organisaties.filter(o=>(tr.organisatie_ids||[]).includes(o.id));
-              const docs = documenten.filter(d=>d.traject_id===tr.id);
+              const kind=kinderen.find(k=>k.id===tr.kind_id);
+              const acties=actiepunten.filter(a=>a.traject_id===tr.id&&a.status!=='afgerond');
+              const orgs=organisaties.filter(o=>(tr.organisatie_ids||[]).includes(o.id));
+              const docs=documenten.filter(d=>d.traject_id===tr.id);
               return (
-                <div key={tr.id} className="bg-white p-6 rounded-2xl border-2 border-gray-100 shadow-sm hover:shadow-lg transition-all">
+                <div key={tr.id} className="bg-white p-6 rounded-2xl border-2 border-gray-100 shadow-sm">
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex-1 cursor-pointer" onClick={()=>setModal({type:'traject',data:tr})}>
                       <h3 className="font-bold text-lg text-gray-900 mb-1">{tr.naam}</h3>
@@ -512,25 +477,20 @@
       );
     };
 
-    // ─── DOC SECTIE (met viewer) ──────────────────────────────────────────────────
     const DocSectie = ({ traject, docs, saveDocument, delDocument, currentUser, onView }) => {
       const [open, setOpen] = useState(false);
       const [uploading, setUploading] = useState(false);
       const handleUpload = (e) => {
-        const file = e.target.files[0]; if(!file) return;
+        const file=e.target.files[0]; if(!file) return;
         if(file.size>10*1024*1024){alert('Bestand te groot (max 10MB)');return;}
         setUploading(true);
-        const reader = new FileReader();
-        reader.onload = async (ev) => {
-          await saveDocument({ id:Date.now().toString(), traject_id:traject.id, naam:file.name, type:file.type, grootte:file.size, data:ev.target.result, aangemaakt_door:currentUser.naam, aangemaakt_op:new Date().toISOString() });
-          setUploading(false);
-        };
-        reader.onerror=()=>{alert('Fout bij laden bestand');setUploading(false);};
-        reader.readAsDataURL(file);
-        e.target.value='';
+        const r=new FileReader();
+        r.onload=async(ev)=>{ await saveDocument({id:Date.now().toString(),traject_id:traject.id,naam:file.name,type:file.type,grootte:file.size,data:ev.target.result,aangemaakt_door:currentUser.naam,aangemaakt_op:new Date().toISOString()}); setUploading(false); };
+        r.onerror=()=>{alert('Fout bij laden');setUploading(false);};
+        r.readAsDataURL(file); e.target.value='';
       };
-      const icon = (t) => t?.includes('pdf')?'📄':t?.includes('image')?'🖼️':t?.includes('word')||t?.includes('document')?'📝':'📎';
-      const fmtSize = (b) => !b?'':b<1024?b+'B':b<1024*1024?(b/1024).toFixed(0)+'KB':(b/(1024*1024)).toFixed(1)+'MB';
+      const icon=(t)=>t?.includes('pdf')?'📄':t?.includes('image')?'🖼️':t?.includes('word')||t?.includes('document')?'📝':'📎';
+      const fmt=(b)=>!b?'':b<1024?b+'B':b<1048576?(b/1024).toFixed(0)+'KB':(b/1048576).toFixed(1)+'MB';
       return (
         <div>
           <div className="flex items-center justify-between mb-2">
@@ -548,15 +508,14 @@
               {docs.map(doc=>(
                 <div key={doc.id} className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl">
                   <span className="text-xl flex-shrink-0">{icon(doc.type)}</span>
-                  {/* FIX: klikbaar voor viewer */}
-                  <button onClick={()=>onView(doc)} className="flex-1 min-w-0 text-left hover:text-indigo-700">
+                  <button onClick={()=>onView(doc)} className="flex-1 min-w-0 text-left">
                     <p className="text-sm font-medium text-gray-900 truncate hover:text-indigo-700">{doc.naam}</p>
-                    <p className="text-xs text-gray-500">{fmtSize(doc.grootte)} • {new Date(doc.aangemaakt_op).toLocaleDateString('nl-NL')}</p>
+                    <p className="text-xs text-gray-500">{fmt(doc.grootte)} • {new Date(doc.aangemaakt_op).toLocaleDateString('nl-NL')}</p>
                   </button>
-                  <a href={doc.data} download={doc.naam} onClick={e=>e.stopPropagation()} className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 flex-shrink-0" title="Download">
+                  <a href={doc.data} download={doc.naam} onClick={e=>e.stopPropagation()} className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 flex-shrink-0">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                   </a>
-                  <button onClick={()=>delDocument(doc.id)} className="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-100 flex-shrink-0" title="Verwijderen">
+                  <button onClick={()=>delDocument(doc.id)} className="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-100 flex-shrink-0">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                   </button>
                 </div>
@@ -573,13 +532,12 @@
       const [confirm, setConfirm] = useState(null);
       const [filter, setFilter] = useState('aankomend');
       const now = new Date();
-      // FIX 6: guard op lege/ongeldige datum
-      const toDate = (a) => { if(!a.datum) return new Date(0); const d = new Date(a.datum+'T'+(a.tijd||'00:00')); return isNaN(d)?new Date(0):d; };
-      const sorted = [...afspraken].sort((a,b)=>toDate(a)-toDate(b));
-      const aankomend = sorted.filter(a=>toDate(a)>=now&&a.status!=='geannuleerd');
-      const geweest   = sorted.filter(a=>toDate(a)<now||a.status==='geannuleerd').reverse();
-      const list = filter==='aankomend'?aankomend:geweest;
-      const sCls = {gepland:'bg-blue-50 text-blue-700 border-blue-200',geweest:'bg-green-50 text-green-700 border-green-200',verzet:'bg-orange-50 text-orange-700 border-orange-200',geannuleerd:'bg-red-50 text-red-700 border-red-200'};
+      const toD=(a)=>{ if(!a.datum) return new Date(0); const d=new Date(a.datum+'T'+(a.tijd||'00:00')); return isNaN(d)?new Date(0):d; };
+      const sorted=[...afspraken].sort((a,b)=>toD(a)-toD(b));
+      const aankomend=sorted.filter(a=>toD(a)>=now&&a.status!=='geannuleerd');
+      const geweest=sorted.filter(a=>toD(a)<now||a.status==='geannuleerd').reverse();
+      const list=filter==='aankomend'?aankomend:geweest;
+      const sCls={gepland:'bg-blue-50 text-blue-700 border-blue-200',geweest:'bg-green-50 text-green-700 border-green-200',verzet:'bg-orange-50 text-orange-700 border-orange-200',geannuleerd:'bg-red-50 text-red-700 border-red-200'};
       return (
         <div className="space-y-6 pb-24">
           <div className="flex justify-between items-center">
@@ -601,10 +559,10 @@
           </div>
           <div className="space-y-4">
             {list.map(af=>{
-              const kind = kinderen.find(k=>k.id===af.kind_id);
-              const tr   = trajecten.find(t=>t.id===af.traject_id);
-              const org  = organisaties.find(o=>o.id===af.organisatie_id);
-              const d    = toDate(af);
+              const kind=kinderen.find(k=>k.id===af.kind_id);
+              const tr=trajecten.find(t=>t.id===af.traject_id);
+              const org=organisaties.find(o=>o.id===af.organisatie_id);
+              const d=toD(af);
               return (
                 <div key={af.id} className="bg-white p-5 rounded-2xl border-2 border-gray-100 shadow-sm">
                   <div className="flex items-start gap-4">
@@ -646,7 +604,7 @@
     // ─── ORGANISATIES ─────────────────────────────────────────────────────────────
     const OrganisatiesView = ({ organisaties, trajecten, setModal, onDelOrg }) => {
       const [confirm, setConfirm] = useState(null);
-      const tCls = {Gemeente:'bg-blue-50 text-blue-700 border-blue-200',Zorginstelling:'bg-green-50 text-green-700 border-green-200',School:'bg-yellow-50 text-yellow-700 border-yellow-200',Ziekenhuis:'bg-red-50 text-red-700 border-red-200',Verzekeraar:'bg-purple-50 text-purple-700 border-purple-200',Thuiszorg:'bg-teal-50 text-teal-700 border-teal-200',GGZ:'bg-pink-50 text-pink-700 border-pink-200',MEE:'bg-orange-50 text-orange-700 border-orange-200',Wijkteam:'bg-indigo-50 text-indigo-700 border-indigo-200',Anders:'bg-gray-50 text-gray-700 border-gray-200'};
+      const tCls={Gemeente:'bg-blue-50 text-blue-700 border-blue-200',Zorginstelling:'bg-green-50 text-green-700 border-green-200',School:'bg-yellow-50 text-yellow-700 border-yellow-200',Ziekenhuis:'bg-red-50 text-red-700 border-red-200',Verzekeraar:'bg-purple-50 text-purple-700 border-purple-200',Thuiszorg:'bg-teal-50 text-teal-700 border-teal-200',GGZ:'bg-pink-50 text-pink-700 border-pink-200',MEE:'bg-orange-50 text-orange-700 border-orange-200',Wijkteam:'bg-indigo-50 text-indigo-700 border-indigo-200',Anders:'bg-gray-50 text-gray-700 border-gray-200'};
       return (
         <div className="space-y-6 pb-24">
           <div className="flex justify-between items-center">
@@ -667,7 +625,7 @@
           )}
           <div className="grid gap-4">
             {organisaties.map(org=>{
-              const tc = trajecten.filter(t=>(t.organisatie_ids||[]).includes(org.id)).length;
+              const tc=trajecten.filter(t=>(t.organisatie_ids||[]).includes(org.id)).length;
               return (
                 <div key={org.id} className="bg-white p-5 rounded-2xl border-2 border-gray-100 shadow-sm">
                   <div className="flex justify-between items-start">
@@ -701,7 +659,7 @@
       );
     };
 
-    // ─── GEDEELDE COMPONENTEN ─────────────────────────────────────────────────────
+    // ─── HELPERS ──────────────────────────────────────────────────────────────────
     const EmptyState = ({ msg, onAdd, btnTxt }) => (
       <div className="text-center py-16 bg-gradient-to-br from-gray-50 to-indigo-50 rounded-2xl border-2 border-dashed border-gray-300">
         <p className="text-xl font-semibold text-gray-900 mb-2">{msg}</p>
@@ -710,12 +668,12 @@
     );
 
     const ConfirmDialog = ({ msg, onCancel, onOk }) => (
-      <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center p-4 z-50">
         <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full">
           <p className="text-gray-800 font-medium mb-6">{msg}</p>
           <div className="flex gap-3">
             <button onClick={onCancel} className="flex-1 py-3 border-2 border-gray-200 text-gray-700 rounded-xl font-medium">Annuleren</button>
-            <button onClick={onOk} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-medium hover:bg-red-600">Verwijderen</button>
+            <button onClick={onOk} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-medium">Verwijderen</button>
           </div>
         </div>
       </div>
@@ -734,9 +692,9 @@
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-gray-100 shadow-2xl z-40">
           <div className="max-w-2xl mx-auto flex justify-around px-1">
             {items.map(item=>{
-              const active = view===item.id;
+              const active=view===item.id;
               return (
-                <button key={item.id} onClick={()=>setView(item.id)} className={`flex flex-col items-center py-2 px-2 transition-all ${active?'text-indigo-600':'text-gray-500'}`}>
+                <button key={item.id} onClick={()=>setView(item.id)} className={`flex flex-col items-center py-2 px-2 ${active?'text-indigo-600':'text-gray-500'}`}>
                   <div className={`p-1.5 rounded-xl ${active?'bg-indigo-100':''}`}>
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.d}/></svg>
                   </div>
@@ -794,7 +752,7 @@
         setFotoLoading(true);
         const r=new FileReader();
         r.onload=ev=>{setFd(p=>({...p,foto:ev.target.result}));setFotoLoading(false);};
-        r.onerror=()=>{alert('Fout bij laden foto');setFotoLoading(false);};
+        r.onerror=()=>{alert('Fout');setFotoLoading(false);};
         r.readAsDataURL(f);
       };
       const save = async () => { if(!fd.naam) return; if(await onSave(fd)) onClose(); };
@@ -816,8 +774,8 @@
               </div>
             </div>
             <div><label className={labelCls}>Naam *</label><input type="text" value={fd.naam} onChange={e=>setFd({...fd,naam:e.target.value})} className={inputCls}/></div>
-            <div><label className={labelCls}>Geboortedatum</label><input type="date" value={fd.geboortedatum} onChange={e=>setFd({...fd,geboortedatum:e.target.value})} className={inputSmCls}/></div>
-            <div><label className={labelCls}>Notities</label><textarea value={fd.notities} onChange={e=>setFd({...fd,notities:e.target.value})} placeholder="Telefoonnummers, bijzonderheden..." className={inputCls+" resize-none"} rows={4}/></div>
+            <div><label className={labelCls}>Geboortedatum</label><input type="date" value={fd.geboortedatum||''} onChange={e=>setFd({...fd,geboortedatum:e.target.value})} className={inputCls}/></div>
+            <div><label className={labelCls}>Notities</label><textarea value={fd.notities||''} onChange={e=>setFd({...fd,notities:e.target.value})} placeholder="Telefoonnummers, bijzonderheden..." className={inputCls+" resize-none"} rows={4}/></div>
             <button onClick={save} disabled={!fd.naam} className={btnPrimary+" disabled:opacity-50"}>Opslaan</button>
           </div>
         </ModalWrap>
@@ -854,7 +812,7 @@
                   })}
                 </div>}
             </div>
-            <div><label className={labelCls}>Omschrijving</label><textarea value={fd.omschrijving} onChange={e=>setFd({...fd,omschrijving:e.target.value})} className={inputCls+" resize-none"} rows={3}/></div>
+            <div><label className={labelCls}>Omschrijving</label><textarea value={fd.omschrijving||''} onChange={e=>setFd({...fd,omschrijving:e.target.value})} className={inputCls+" resize-none"} rows={3}/></div>
             <button onClick={save} disabled={!fd.naam||!fd.kind_id} className={btnPrimary+" disabled:opacity-50"}>Opslaan</button>
           </div>
         </ModalWrap>
@@ -862,7 +820,6 @@
     };
 
     // ─── ACTIEPUNT MODAL ──────────────────────────────────────────────────────────
-    // FIX 2: id apart behandeld zodat spread volgorde niet uitmaakt
     const ActiepuntModal = ({ actiepunt, trajecten, kinderen, onClose, onSave, currentUser }) => {
       const isNew = !actiepunt?.omschrijving;
       const [fd, setFd] = useState({
@@ -903,7 +860,7 @@
               </select>
             </div>}
             <div><label className={labelCls}>Deadline</label>
-              <input type="date" value={fd.deadline} onChange={e=>setFd({...fd,deadline:e.target.value})} className={inputCls}/>
+              <input type="date" value={fd.deadline||''} onChange={e=>setFd({...fd,deadline:e.target.value})} className={inputCls}/>
             </div>
             <div><label className={labelCls}>Prioriteit</label>
               <select value={fd.prioriteit} onChange={e=>setFd({...fd,prioriteit:e.target.value})} className={inputCls}>
@@ -925,15 +882,15 @@
           <div className="space-y-5">
             <div><label className={labelCls}>Naam *</label><input type="text" placeholder="bijv. Gemeente Groningen" value={fd.naam} onChange={e=>setFd({...fd,naam:e.target.value})} className={inputCls}/></div>
             <div><label className={labelCls}>Type</label>
-              <select value={fd.type} onChange={e=>setFd({...fd,type:e.target.value})} className={inputCls}>
+              <select value={fd.type||''} onChange={e=>setFd({...fd,type:e.target.value})} className={inputCls}>
                 <option value="">Selecteer type</option>
                 {ORG_TYPES.map(t=><option key={t} value={t}>{t}</option>)}
               </select>
             </div>
-            <div><label className={labelCls}>Contactpersoon</label><input type="text" value={fd.contactpersoon} onChange={e=>setFd({...fd,contactpersoon:e.target.value})} className={inputCls}/></div>
-            <div><label className={labelCls}>Telefoon</label><input type="tel" value={fd.telefoon} onChange={e=>setFd({...fd,telefoon:e.target.value})} className={inputCls}/></div>
-            <div><label className={labelCls}>E-mail</label><input type="email" value={fd.email} onChange={e=>setFd({...fd,email:e.target.value})} className={inputCls}/></div>
-            <div><label className={labelCls}>Notities</label><textarea value={fd.notities} onChange={e=>setFd({...fd,notities:e.target.value})} className={inputCls+" resize-none"} rows={3}/></div>
+            <div><label className={labelCls}>Contactpersoon</label><input type="text" value={fd.contactpersoon||''} onChange={e=>setFd({...fd,contactpersoon:e.target.value})} className={inputCls}/></div>
+            <div><label className={labelCls}>Telefoon</label><input type="tel" value={fd.telefoon||''} onChange={e=>setFd({...fd,telefoon:e.target.value})} className={inputCls}/></div>
+            <div><label className={labelCls}>E-mail</label><input type="email" value={fd.email||''} onChange={e=>setFd({...fd,email:e.target.value})} className={inputCls}/></div>
+            <div><label className={labelCls}>Notities</label><textarea value={fd.notities||''} onChange={e=>setFd({...fd,notities:e.target.value})} className={inputCls+" resize-none"} rows={3}/></div>
             <button onClick={save} disabled={!fd.naam} className={btnPrimary+" disabled:opacity-50"}>Opslaan</button>
           </div>
         </ModalWrap>
@@ -942,25 +899,28 @@
 
     // ─── AFSPRAAK MODAL ───────────────────────────────────────────────────────────
     const AfspraakModal = ({ afspraak, kinderen, trajecten, organisaties, onClose, onSave, currentUser }) => {
-      const base = afspraak || {};
+      const b = afspraak || {};
       const [fd, setFd] = useState({
-        id: base.id || Date.now().toString(),
-        titel: base.titel || '',
-        datum: base.datum || '',
-        tijd: base.tijd || '',
-        locatie: base.locatie || '',
-        kind_id: base.kind_id || '',
-        traject_id: base.traject_id || '',
-        organisatie_id: base.organisatie_id || '',
-        wie: base.wie || 'Beide',
-        status: base.status || 'gepland',
-        notities: base.notities || '',
-        verslag: base.verslag || '',
-        aangemaakt_door: base.aangemaakt_door || currentUser.naam,
-        aangemaakt_op: base.aangemaakt_op || new Date().toISOString(),
+        id: b.id || Date.now().toString(),
+        titel: b.titel || '',
+        datum: b.datum || '',
+        tijd: b.tijd || '',
+        locatie: b.locatie || '',
+        kind_id: b.kind_id || '',
+        traject_id: b.traject_id || '',
+        organisatie_id: b.organisatie_id || '',
+        wie: b.wie || 'Beide',
+        status: b.status || 'gepland',
+        notities: b.notities || '',
+        verslag: b.verslag || '',
+        aangemaakt_door: b.aangemaakt_door || currentUser.naam,
+        aangemaakt_op: b.aangemaakt_op || new Date().toISOString(),
       });
       const filtTraj = fd.kind_id ? trajecten.filter(t=>t.kind_id===fd.kind_id&&t.status!=='afgesloten') : trajecten.filter(t=>t.status!=='afgesloten');
-
+      const save = async () => {
+        if(!fd.titel||!fd.datum){alert('Vul minimaal een titel en datum in.');return;}
+        if(await onSave(fd)) onClose();
+      };
       return (
         <ModalWrap onClose={onClose} title={afspraak?'Bewerk afspraak':'Nieuwe afspraak'}>
           <div className="space-y-4">
@@ -1005,7 +965,7 @@
       );
     };
 
-    // ─── HEADER FOTO MODAL ──────────────────────────────────────────────────────
+    // ─── HEADER FOTO MODAL ────────────────────────────────────────────────────────
     const HeaderFotoModal = ({ onClose, onSave, headerFoto }) => {
       const [foto, setFoto] = useState(headerFoto);
       const [loading, setLoading] = useState(false);
@@ -1015,7 +975,7 @@
         setLoading(true);
         const r=new FileReader();
         r.onload=ev=>{setFoto(ev.target.result);setLoading(false);};
-        r.onerror=()=>{alert('Fout bij laden foto');setLoading(false);};
+        r.onerror=()=>{alert('Fout');setLoading(false);};
         r.readAsDataURL(f);
       };
       return (
