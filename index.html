@@ -17,7 +17,7 @@
     const SUPABASE_URL = 'https://ljupvfenzalnqnulyrvg.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxqdXB2ZmVuemFsbnFudWx5cnZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzMjc3MDYsImV4cCI6MjA4NjkwMzcwNn0.86TB7rW3V7xSkWdc9C_l8Rt6PwQWliidrWGKk9-HsN8';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    const USERS = { 'JJ': 'catomoos', 'Linda': 'mooscato' };
+    const USERS = { 'JJ': 'catomoos', 'Linda': 'mooscato', 'Cato': 'cato2011', 'Moos': 'moos2013' };
     const ORG_TYPES = ['Gemeente','Zorginstelling','School','Ziekenhuis','Verzekeraar','Thuiszorg','GGZ','MEE','Wijkteam','Anders'];
 
     const inputCls = "w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none transition-colors text-base";
@@ -61,8 +61,8 @@
               <div className="bg-white rounded-2xl p-10 text-center max-w-sm">
                 <div className="text-6xl mb-4">📎</div>
                 <p className="font-bold text-gray-900 mb-2">{doc.naam}</p>
-                <p className="text-sm text-gray-500 mb-6">Preview niet beschikbaar voor dit bestandstype.</p>
-                <a href={doc.data} download={doc.naam} className={btnPrimary + " inline-block"}>Download bestand</a>
+                <p className="text-sm text-gray-500 mb-6">Preview niet beschikbaar.</p>
+                <a href={doc.data} download={doc.naam} className={btnPrimary+" inline-block"}>Download bestand</a>
               </div>
             )}
           </div>
@@ -74,15 +74,8 @@
     const App = () => {
       const [user, setUser] = useState(null);
       const [loading, setLoading] = useState(true);
-      useEffect(() => {
-        const u = localStorage.getItem('huizelukas_user');
-        if (u) setUser(JSON.parse(u));
-        setLoading(false);
-      }, []);
-      const login = (naam, ww) => {
-        if (USERS[naam] === ww) { const u={naam}; localStorage.setItem('huizelukas_user',JSON.stringify(u)); setUser(u); return true; }
-        return false;
-      };
+      useEffect(() => { const u=localStorage.getItem('huizelukas_user'); if(u) setUser(JSON.parse(u)); setLoading(false); }, []);
+      const login = (naam, ww) => { if(USERS[naam]===ww){const u={naam};localStorage.setItem('huizelukas_user',JSON.stringify(u));setUser(u);return true;} return false; };
       const logout = () => { localStorage.removeItem('huizelukas_user'); setUser(null); };
       if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl animate-pulse"/></div>;
       if (!user) return <LoginScreen onLogin={login}/>;
@@ -93,7 +86,7 @@
       const [naam, setNaam] = useState('');
       const [ww, setWw] = useState('');
       const [err, setErr] = useState('');
-      const submit = (e) => { e.preventDefault(); if (!onLogin(naam,ww)) { setErr('Ongeldige gebruikersnaam of wachtwoord'); setWw(''); } };
+      const submit = (e) => { e.preventDefault(); if(!onLogin(naam,ww)){setErr('Ongeldige gebruikersnaam of wachtwoord');setWw('');} };
       return (
         <div className="fixed inset-0 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
@@ -109,6 +102,8 @@
                 <option value="">Selecteer gebruiker</option>
                 <option value="JJ">JJ</option>
                 <option value="Linda">Linda</option>
+                <option value="Cato">Cato</option>
+                <option value="Moos">Moos</option>
               </select>
               <input type="password" placeholder="Wachtwoord" value={ww} onChange={e=>setWw(e.target.value)} className={inputCls}/>
               {err && <p className="text-red-600 text-sm">{err}</p>}
@@ -128,6 +123,7 @@
       const [organisaties, setOrganisaties] = useState([]);
       const [afspraken, setAfspraken] = useState([]);
       const [documenten, setDocumenten] = useState([]);
+      const [medicijnen, setMedicijnen] = useState([]);
       const [headerFoto, setHeaderFoto] = useState('');
       const [modal, setModal] = useState(null);
       const [viewerDoc, setViewerDoc] = useState(null);
@@ -140,24 +136,26 @@
         let t;
         const reset = () => { clearTimeout(t); t = setTimeout(() => { localStorage.removeItem('huizelukas_user'); onLogout(); }, 600000); };
         const evts = ['click','touchstart','keydown','scroll'];
-        evts.forEach(e => window.addEventListener(e, reset)); reset();
-        return () => { clearTimeout(t); evts.forEach(e => window.removeEventListener(e, reset)); };
+        evts.forEach(e=>window.addEventListener(e,reset)); reset();
+        return () => { clearTimeout(t); evts.forEach(e=>window.removeEventListener(e,reset)); };
       }, []);
 
       const loadAll = async () => {
         try {
-          const [k,t,a,o,af,d,s] = await Promise.all([
+          const [k,t,a,o,af,d,m,s] = await Promise.all([
             supabase.from('kinderen').select('*'),
             supabase.from('trajecten').select('*'),
             supabase.from('actiepunten').select('*'),
             supabase.from('organisaties').select('*'),
             supabase.from('afspraken').select('*'),
             supabase.from('documenten').select('*'),
+            supabase.from('medicijnen').select('*'),
             supabase.from('instellingen').select('*').eq('id','settings').single()
           ]);
           setKinderen(k.data||[]); setTrajecten(t.data||[]); setActiepunten(a.data||[]);
           setOrganisaties(o.data||[]); setAfspraken(af.data||[]);
-          setDocumenten(d.data||[]); setHeaderFoto(s.data?.header_foto||'');
+          setDocumenten(d.data||[]); setMedicijnen(m.data||[]);
+          setHeaderFoto(s.data?.header_foto||'');
         } catch(e) { console.error(e); }
         setLoading(false);
       };
@@ -167,15 +165,15 @@
       const makeSave = (table, setList) => async (item) => {
         try {
           const c = clean(item);
-          const { data: ex } = await supabase.from(table).select('id').eq('id',item.id).single();
+          const {data:ex} = await supabase.from(table).select('id').eq('id',item.id).single();
           if (ex) {
             const {error} = await supabase.from(table).update(c).eq('id',item.id);
             if (error) throw error;
-            setList(prev => prev.map(x => x.id===item.id ? item : x));
+            setList(prev=>prev.map(x=>x.id===item.id?item:x));
           } else {
             const {data,error} = await supabase.from(table).insert([c]).select();
             if (error) throw error;
-            setList(prev => [...prev, data?.[0]||item]);
+            setList(prev=>[...prev, data?.[0]||item]);
           }
           return true;
         } catch(e) { alert('Fout bij opslaan: '+e.message); return false; }
@@ -185,7 +183,7 @@
         try {
           const {error} = await supabase.from(table).delete().eq('id',id);
           if (error) throw error;
-          setList(prev => prev.filter(x=>x.id!==id)); return true;
+          setList(prev=>prev.filter(x=>x.id!==id)); return true;
         } catch(e) { alert('Fout bij verwijderen: '+e.message); return false; }
       };
 
@@ -195,10 +193,12 @@
       const saveOrganisatie = makeSave('organisaties', setOrganisaties);
       const saveAfspraak    = makeSave('afspraken', setAfspraken);
       const saveDocument    = makeSave('documenten', setDocumenten);
+      const saveMedicijn    = makeSave('medicijnen', setMedicijnen);
       const delOrganisatie  = makeDel('organisaties', setOrganisaties);
       const delAfspraak     = makeDel('afspraken', setAfspraken);
       const delDocument     = makeDel('documenten', setDocumenten);
       const delActiepunt    = makeDel('actiepunten', setActiepunten);
+      const delMedicijn     = makeDel('medicijnen', setMedicijnen);
 
       const saveHeaderFoto = async (foto) => {
         try { await supabase.from('instellingen').update({header_foto:foto}).eq('id','settings'); setHeaderFoto(foto); return true; }
@@ -206,14 +206,14 @@
       };
 
       const exportData = () => {
-        const blob = new Blob([JSON.stringify({exportdatum:new Date().toISOString(),kinderen,trajecten,actiepunten,organisaties,afspraken},null,2)],{type:'application/json'});
+        const blob = new Blob([JSON.stringify({exportdatum:new Date().toISOString(),kinderen,trajecten,actiepunten,organisaties,afspraken,medicijnen},null,2)],{type:'application/json'});
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a'); a.href=url; a.download=`huize-lukas-${new Date().toISOString().split('T')[0]}.json`; a.click(); URL.revokeObjectURL(url);
       };
 
       if (loading) return <div className="min-h-screen flex items-center justify-center"><p className="text-gray-500">Laden...</p></div>;
 
-      const shared = { kinderen, trajecten, actiepunten, organisaties, afspraken, documenten, setModal, saveActiepunt, delActiepunt, saveDocument, delDocument, currentUser:user, setViewerDoc };
+      const shared = { kinderen, trajecten, actiepunten, organisaties, afspraken, documenten, medicijnen, setModal, saveActiepunt, delActiepunt, saveDocument, delDocument, saveMedicijn, delMedicijn, currentUser:user, setViewerDoc };
 
       return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 via-indigo-50 to-purple-50">
@@ -232,6 +232,7 @@
             {view==='kinderen'     && <KinderenView {...shared}/>}
             {view==='trajecten'    && <TrajectenView {...shared}/>}
             {view==='afspraken'    && <AfsprakenView {...shared} onDelAfspraak={delAfspraak}/>}
+            {view==='medicijnen'   && <MedicijnenView {...shared}/>}
             {view==='organisaties' && <OrganisatiesView {...shared} onDelOrg={delOrganisatie}/>}
 
             <BottomNav view={view} setView={setView}/>
@@ -240,7 +241,7 @@
             {modal && <ModalManager modal={modal} setModal={setModal} currentUser={user}
               kinderen={kinderen} trajecten={trajecten} organisaties={organisaties}
               saveKind={saveKind} saveTraject={saveTraject} saveActiepunt={saveActiepunt}
-              saveOrganisatie={saveOrganisatie} saveAfspraak={saveAfspraak}
+              saveOrganisatie={saveOrganisatie} saveAfspraak={saveAfspraak} saveMedicijn={saveMedicijn}
               saveHeaderFoto={saveHeaderFoto} headerFoto={headerFoto}/>}
 
             {viewerDoc && <DocViewer doc={viewerDoc} onClose={()=>setViewerDoc(null)}/>}
@@ -250,7 +251,7 @@
     };
 
     // ─── DASHBOARD ────────────────────────────────────────────────────────────────
-    const Dashboard = ({ kinderen, trajecten, actiepunten, afspraken, headerFoto, search, setSearch, showDone, setShowDone, setModal, saveActiepunt, delActiepunt, saveHeaderFoto }) => {
+    const Dashboard = ({ kinderen, trajecten, actiepunten, afspraken, medicijnen, headerFoto, search, setSearch, showDone, setShowDone, setModal, saveActiepunt, delActiepunt, saveHeaderFoto }) => {
       const today = new Date(); today.setHours(0,0,0,0);
       const week = new Date(today); week.setDate(week.getDate()+7);
       const pd = (s) => { if(!s) return null; const [y,m,d]=s.split('-'); return new Date(+y,+m-1,+d); };
@@ -261,6 +262,7 @@
       const over   = list.filter(a=>{ const d=pd(a.deadline); return d&&d<today&&a.status!=='afgerond'; });
       const dezeWk = list.filter(a=>{ const d=pd(a.deadline); return d&&d>=today&&d<=week; });
       const komend = [...afspraken].filter(a=>toD(a)>=today&&a.status!=='geannuleerd').sort((a,b)=>toD(a)-toD(b)).slice(0,3);
+      const bestellen = medicijnen.filter(m=>m.moet_besteld);
       const toggle = (a) => saveActiepunt({...a, status:a.status==='afgerond'?'open':'afgerond'});
 
       return (
@@ -280,6 +282,18 @@
               <div className="text-center">
                 <svg className="w-8 h-8 text-indigo-500 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/></svg>
                 <p className="text-sm font-medium text-indigo-700">Voeg een gezinsfoto toe</p>
+              </div>
+            </div>
+          )}
+
+          {/* Medicijnen bestellen alert */}
+          {bestellen.length>0 && (
+            <div className="bg-gradient-to-br from-amber-50 to-orange-50 p-5 rounded-2xl border-2 border-amber-200">
+              <h2 className="text-lg font-bold text-amber-900 mb-2">💊 Medicijnen bestellen ({bestellen.length})</h2>
+              <div className="flex flex-wrap gap-2">
+                {bestellen.map(m=>(
+                  <span key={m.id} className="bg-white text-amber-800 border border-amber-300 px-3 py-1 rounded-full text-sm font-medium">{m.naam}</span>
+                ))}
               </div>
             </div>
           )}
@@ -486,8 +500,7 @@
         setUploading(true);
         const r=new FileReader();
         r.onload=async(ev)=>{ await saveDocument({id:Date.now().toString(),traject_id:traject.id,naam:file.name,type:file.type,grootte:file.size,data:ev.target.result,aangemaakt_door:currentUser.naam,aangemaakt_op:new Date().toISOString()}); setUploading(false); };
-        r.onerror=()=>{alert('Fout bij laden');setUploading(false);};
-        r.readAsDataURL(file); e.target.value='';
+        r.onerror=()=>{alert('Fout');setUploading(false);}; r.readAsDataURL(file); e.target.value='';
       };
       const icon=(t)=>t?.includes('pdf')?'📄':t?.includes('image')?'🖼️':t?.includes('word')||t?.includes('document')?'📝':'📎';
       const fmt=(b)=>!b?'':b<1024?b+'B':b<1048576?(b/1024).toFixed(0)+'KB':(b/1048576).toFixed(1)+'MB';
@@ -526,6 +539,80 @@
         </div>
       );
     };
+
+    // ─── MEDICIJNEN ───────────────────────────────────────────────────────────────
+    const MedicijnenView = ({ medicijnen, setModal, saveMedicijn, delMedicijn }) => {
+      const bestellen = medicijnen.filter(m=>m.moet_besteld);
+      const voorraad  = medicijnen.filter(m=>!m.moet_besteld);
+      const toggleBesteld = (m) => saveMedicijn({...m, moet_besteld: !m.moet_besteld});
+
+      return (
+        <div className="space-y-6 pb-24">
+          <div className="flex justify-between items-center">
+            <div><h1 className="text-3xl font-bold text-gray-900">Medicijnen</h1><p className="text-gray-600 mt-1">Voorraad en bestellingen</p></div>
+            <button onClick={()=>setModal({type:'medicijn'})} className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-3 rounded-2xl shadow-lg">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/></svg>
+            </button>
+          </div>
+
+          {/* Stat pills */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-white p-4 rounded-2xl border-2 border-gray-100 text-center">
+              <p className="text-3xl font-bold text-indigo-600">{medicijnen.length}</p>
+              <p className="text-sm text-gray-600">Totaal</p>
+            </div>
+            <div className={`p-4 rounded-2xl border-2 text-center ${bestellen.length>0?'bg-amber-50 border-amber-200':'bg-green-50 border-green-200'}`}>
+              <p className={`text-3xl font-bold ${bestellen.length>0?'text-amber-600':'text-green-600'}`}>{bestellen.length}</p>
+              <p className={`text-sm ${bestellen.length>0?'text-amber-700':'text-green-700'}`}>Te bestellen</p>
+            </div>
+          </div>
+
+          {/* Te bestellen */}
+          {bestellen.length>0 && (
+            <div className="bg-gradient-to-br from-amber-50 to-orange-50 p-5 rounded-2xl border-2 border-amber-200">
+              <h2 className="text-lg font-bold text-amber-900 mb-3">💊 Moet besteld worden</h2>
+              <div className="space-y-2">
+                {bestellen.map(m=><MedicijnCard key={m.id} m={m} onEdit={()=>setModal({type:'medicijn',data:m})} onToggle={()=>toggleBesteld(m)} onDelete={()=>{ if(window.confirm(`"${m.naam}" verwijderen?`)) delMedicijn(m.id); }}/>)}
+              </div>
+            </div>
+          )}
+
+          {/* Op voorraad */}
+          {voorraad.length>0 && (
+            <div>
+              <h2 className="text-lg font-bold text-gray-700 mb-3">✅ Op voorraad</h2>
+              <div className="space-y-2">
+                {voorraad.map(m=><MedicijnCard key={m.id} m={m} onEdit={()=>setModal({type:'medicijn',data:m})} onToggle={()=>toggleBesteld(m)} onDelete={()=>{ if(window.confirm(`"${m.naam}" verwijderen?`)) delMedicijn(m.id); }}/>)}
+              </div>
+            </div>
+          )}
+
+          {medicijnen.length===0&&<EmptyState msg="Nog geen medicijnen toegevoegd" onAdd={()=>setModal({type:'medicijn'})} btnTxt="Voeg eerste medicijn toe"/>}
+        </div>
+      );
+    };
+
+    const MedicijnCard = ({ m, onEdit, onToggle, onDelete }) => (
+      <div className={`bg-white p-4 rounded-2xl border-2 shadow-sm ${m.moet_besteld?'border-amber-200':'border-gray-100'}`}>
+        <div className="flex items-start gap-3">
+          {/* Toggle bestellen */}
+          <button onClick={e=>{e.stopPropagation();onToggle();}} className="mt-0.5 flex-shrink-0" title={m.moet_besteld?'Markeer als op voorraad':'Markeer als te bestellen'}>
+            {m.moet_besteld
+              ? <div className="w-5 h-5 rounded-full bg-amber-400 flex items-center justify-center"><svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"/></svg></div>
+              : <div className="w-5 h-5 rounded-full bg-green-100 border-2 border-green-400 flex items-center justify-center"><svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7"/></svg></div>
+            }
+          </button>
+          <div className="flex-1 cursor-pointer min-w-0" onClick={onEdit}>
+            <p className="font-semibold text-gray-900">{m.naam}</p>
+            {m.notities&&<p className="text-sm text-gray-500 mt-0.5">{m.notities}</p>}
+            {m.moet_besteld&&<span className="inline-block mt-1 text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">Bestellen</span>}
+          </div>
+          <button onClick={e=>{e.stopPropagation();onDelete();}} className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg flex-shrink-0">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          </button>
+        </div>
+      </div>
+    );
 
     // ─── AFSPRAKEN ────────────────────────────────────────────────────────────────
     const AfsprakenView = ({ afspraken, kinderen, trajecten, organisaties, setModal, onDelAfspraak }) => {
@@ -683,8 +770,8 @@
     const BottomNav = ({ view, setView }) => {
       const items = [
         {id:'dashboard',   label:'Dashboard',  d:'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'},
-        {id:'kinderen',    label:'Kinderen',   d:'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'},
         {id:'trajecten',   label:'Trajecten',  d:'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'},
+        {id:'medicijnen',  label:'Medicijnen', d:'M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2v-4M9 21H5a2 2 0 01-2-2v-4m0 0h18'},
         {id:'afspraken',   label:'Afspraken',  d:'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'},
         {id:'organisaties',label:'Instanties', d:'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4'},
       ];
@@ -694,7 +781,7 @@
             {items.map(item=>{
               const active=view===item.id;
               return (
-                <button key={item.id} onClick={()=>setView(item.id)} className={`flex flex-col items-center py-2 px-2 ${active?'text-indigo-600':'text-gray-500'}`}>
+                <button key={item.id} onClick={()=>setView(item.id)} className={`flex flex-col items-center py-2 px-1 ${active?'text-indigo-600':'text-gray-500'}`}>
                   <div className={`p-1.5 rounded-xl ${active?'bg-indigo-100':''}`}>
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.d}/></svg>
                   </div>
@@ -710,7 +797,8 @@
     const FAB = ({ setModal, view }) => {
       const [open, setOpen] = useState(false);
       if (view==='organisaties') return <div className="fixed bottom-24 right-6 z-30"><button onClick={()=>setModal({type:'organisatie'})} className="w-14 h-14 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-full shadow-2xl flex items-center justify-center"><svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/></svg></button></div>;
-      if (view==='afspraken')    return <div className="fixed bottom-24 right-6 z-30"><button onClick={()=>setModal({type:'afspraak'})}    className="w-14 h-14 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-full shadow-2xl flex items-center justify-center"><svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/></svg></button></div>;
+      if (view==='afspraken')    return <div className="fixed bottom-24 right-6 z-30"><button onClick={()=>setModal({type:'afspraak'})} className="w-14 h-14 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-full shadow-2xl flex items-center justify-center"><svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/></svg></button></div>;
+      if (view==='medicijnen')   return <div className="fixed bottom-24 right-6 z-30"><button onClick={()=>setModal({type:'medicijn'})} className="w-14 h-14 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-full shadow-2xl flex items-center justify-center"><svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/></svg></button></div>;
       return (
         <div className="fixed bottom-24 right-6 z-30">
           {open&&(
@@ -731,13 +819,14 @@
     };
 
     // ─── MODAL MANAGER ────────────────────────────────────────────────────────────
-    const ModalManager = ({ modal, setModal, currentUser, kinderen, trajecten, organisaties, saveKind, saveTraject, saveActiepunt, saveOrganisatie, saveAfspraak, saveHeaderFoto, headerFoto }) => {
+    const ModalManager = ({ modal, setModal, currentUser, kinderen, trajecten, organisaties, saveKind, saveTraject, saveActiepunt, saveOrganisatie, saveAfspraak, saveMedicijn, saveHeaderFoto, headerFoto }) => {
       const close = () => setModal(null);
       if (modal.type==='kind')        return <KindModal       kind={modal.data}       onClose={close} onSave={saveKind}        currentUser={currentUser}/>;
       if (modal.type==='traject')     return <TrajectModal    traject={modal.data}    onClose={close} onSave={saveTraject}     currentUser={currentUser} kinderen={kinderen} organisaties={organisaties}/>;
       if (modal.type==='actiepunt')   return <ActiepuntModal  actiepunt={modal.data}  onClose={close} onSave={saveActiepunt}   currentUser={currentUser} trajecten={trajecten} kinderen={kinderen}/>;
       if (modal.type==='organisatie') return <OrgModal        org={modal.data}        onClose={close} onSave={saveOrganisatie} currentUser={currentUser}/>;
       if (modal.type==='afspraak')    return <AfspraakModal   afspraak={modal.data}   onClose={close} onSave={saveAfspraak}    currentUser={currentUser} kinderen={kinderen} trajecten={trajecten} organisaties={organisaties}/>;
+      if (modal.type==='medicijn')    return <MedicijnModal   medicijn={modal.data}   onClose={close} onSave={saveMedicijn}    currentUser={currentUser}/>;
       if (modal.type==='headerFoto')  return <HeaderFotoModal                         onClose={close} onSave={saveHeaderFoto}  headerFoto={headerFoto}/>;
       return null;
     };
@@ -752,8 +841,7 @@
         setFotoLoading(true);
         const r=new FileReader();
         r.onload=ev=>{setFd(p=>({...p,foto:ev.target.result}));setFotoLoading(false);};
-        r.onerror=()=>{alert('Fout');setFotoLoading(false);};
-        r.readAsDataURL(f);
+        r.onerror=()=>{alert('Fout');setFotoLoading(false);}; r.readAsDataURL(f);
       };
       const save = async () => { if(!fd.naam) return; if(await onSave(fd)) onClose(); };
       return (
@@ -823,22 +911,14 @@
     const ActiepuntModal = ({ actiepunt, trajecten, kinderen, onClose, onSave, currentUser }) => {
       const isNew = !actiepunt?.omschrijving;
       const [fd, setFd] = useState({
-        id: actiepunt?.id || Date.now().toString(),
-        traject_id: actiepunt?.traject_id || '',
-        omschrijving: actiepunt?.omschrijving || '',
-        eigenaar: actiepunt?.eigenaar || 'wij',
-        toegewezen_aan: actiepunt?.toegewezen_aan || 'JJ',
-        deadline: actiepunt?.deadline || '',
-        status: actiepunt?.status || 'open',
-        prioriteit: actiepunt?.prioriteit || 'normaal',
-        notities: actiepunt?.notities || '',
-        aangemaakt_door: actiepunt?.aangemaakt_door || currentUser.naam,
-        aangemaakt_op: actiepunt?.aangemaakt_op || new Date().toISOString(),
+        id: actiepunt?.id||Date.now().toString(), traject_id: actiepunt?.traject_id||'',
+        omschrijving: actiepunt?.omschrijving||'', eigenaar: actiepunt?.eigenaar||'wij',
+        toegewezen_aan: actiepunt?.toegewezen_aan||'JJ', deadline: actiepunt?.deadline||'',
+        status: actiepunt?.status||'open', prioriteit: actiepunt?.prioriteit||'normaal',
+        notities: actiepunt?.notities||'', aangemaakt_door: actiepunt?.aangemaakt_door||currentUser.naam,
+        aangemaakt_op: actiepunt?.aangemaakt_op||new Date().toISOString(),
       });
-      const save = async () => {
-        if(!fd.traject_id||!fd.omschrijving){alert('Vul een traject en omschrijving in.');return;}
-        if(await onSave(fd)) onClose();
-      };
+      const save = async () => { if(!fd.traject_id||!fd.omschrijving){alert('Vul een traject en omschrijving in.');return;} if(await onSave(fd)) onClose(); };
       return (
         <ModalWrap onClose={onClose} title={isNew?'Nieuw actiepunt':'Bewerk actiepunt'}>
           <div className="space-y-5">
@@ -859,9 +939,7 @@
                 <option value="JJ">JJ</option><option value="Linda">Linda</option><option value="Beide">Beide</option>
               </select>
             </div>}
-            <div><label className={labelCls}>Deadline</label>
-              <input type="date" value={fd.deadline||''} onChange={e=>setFd({...fd,deadline:e.target.value})} className={inputCls}/>
-            </div>
+            <div><label className={labelCls}>Deadline</label><input type="date" value={fd.deadline||''} onChange={e=>setFd({...fd,deadline:e.target.value})} className={inputCls}/></div>
             <div><label className={labelCls}>Prioriteit</label>
               <select value={fd.prioriteit} onChange={e=>setFd({...fd,prioriteit:e.target.value})} className={inputCls}>
                 <option value="laag">Laag</option><option value="normaal">Normaal</option><option value="hoog">Hoog</option>
@@ -899,28 +977,16 @@
 
     // ─── AFSPRAAK MODAL ───────────────────────────────────────────────────────────
     const AfspraakModal = ({ afspraak, kinderen, trajecten, organisaties, onClose, onSave, currentUser }) => {
-      const b = afspraak || {};
+      const b = afspraak||{};
       const [fd, setFd] = useState({
-        id: b.id || Date.now().toString(),
-        titel: b.titel || '',
-        datum: b.datum || '',
-        tijd: b.tijd || '',
-        locatie: b.locatie || '',
-        kind_id: b.kind_id || '',
-        traject_id: b.traject_id || '',
-        organisatie_id: b.organisatie_id || '',
-        wie: b.wie || 'Beide',
-        status: b.status || 'gepland',
-        notities: b.notities || '',
-        verslag: b.verslag || '',
-        aangemaakt_door: b.aangemaakt_door || currentUser.naam,
-        aangemaakt_op: b.aangemaakt_op || new Date().toISOString(),
+        id:b.id||Date.now().toString(), titel:b.titel||'', datum:b.datum||'', tijd:b.tijd||'',
+        locatie:b.locatie||'', kind_id:b.kind_id||'', traject_id:b.traject_id||'',
+        organisatie_id:b.organisatie_id||'', wie:b.wie||'Beide', status:b.status||'gepland',
+        notities:b.notities||'', verslag:b.verslag||'',
+        aangemaakt_door:b.aangemaakt_door||currentUser.naam, aangemaakt_op:b.aangemaakt_op||new Date().toISOString(),
       });
       const filtTraj = fd.kind_id ? trajecten.filter(t=>t.kind_id===fd.kind_id&&t.status!=='afgesloten') : trajecten.filter(t=>t.status!=='afgesloten');
-      const save = async () => {
-        if(!fd.titel||!fd.datum){alert('Vul minimaal een titel en datum in.');return;}
-        if(await onSave(fd)) onClose();
-      };
+      const save = async () => { if(!fd.titel||!fd.datum){alert('Vul minimaal een titel en datum in.');return;} if(await onSave(fd)) onClose(); };
       return (
         <ModalWrap onClose={onClose} title={afspraak?'Bewerk afspraak':'Nieuwe afspraak'}>
           <div className="space-y-4">
@@ -948,7 +1014,13 @@
             </div>
             <div><label className={labelCls}>Wie gaat mee</label>
               <select value={fd.wie} onChange={e=>setFd({...fd,wie:e.target.value})} className={inputCls}>
-                <option value="JJ">JJ</option><option value="Linda">Linda</option><option value="Beide">Beide</option>
+                <option value="JJ">JJ</option>
+                <option value="Linda">Linda</option>
+                <option value="Beide">Beide</option>
+                <option value="Zorgverlener">Zorgverlener</option>
+                <option value="JJ + Zorgverlener">JJ + Zorgverlener</option>
+                <option value="Linda + Zorgverlener">Linda + Zorgverlener</option>
+                <option value="Alle drie">Alle drie</option>
               </select>
             </div>
             <div><label className={labelCls}>Status</label>
@@ -965,6 +1037,35 @@
       );
     };
 
+    // ─── MEDICIJN MODAL ───────────────────────────────────────────────────────────
+    const MedicijnModal = ({ medicijn, onClose, onSave, currentUser }) => {
+      const [fd, setFd] = useState({
+        id: medicijn?.id||Date.now().toString(),
+        naam: medicijn?.naam||'',
+        notities: medicijn?.notities||'',
+        moet_besteld: medicijn?.moet_besteld||false,
+        aangemaakt_door: medicijn?.aangemaakt_door||currentUser.naam,
+        aangemaakt_op: medicijn?.aangemaakt_op||new Date().toISOString(),
+      });
+      const save = async () => { if(!fd.naam) return; if(await onSave(fd)) onClose(); };
+      return (
+        <ModalWrap onClose={onClose} title={medicijn?'Bewerk medicijn':'Nieuw medicijn'}>
+          <div className="space-y-5">
+            <div><label className={labelCls}>Naam *</label><input type="text" placeholder="bijv. Ritalin 10mg" value={fd.naam} onChange={e=>setFd({...fd,naam:e.target.value})} className={inputCls}/></div>
+            <div><label className={labelCls}>Notities / bijzonderheden</label><textarea value={fd.notities} onChange={e=>setFd({...fd,notities:e.target.value})} placeholder="bijv. dosering, bijwerkingen, apotheek..." className={inputCls+" resize-none"} rows={3}/></div>
+            <label className="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50">
+              <input type="checkbox" checked={fd.moet_besteld} onChange={e=>setFd({...fd,moet_besteld:e.target.checked})} className="w-5 h-5 text-amber-500 rounded"/>
+              <div>
+                <p className="font-semibold text-gray-900">Moet besteld worden</p>
+                <p className="text-sm text-gray-500">Verschijnt bovenaan en op het dashboard</p>
+              </div>
+            </label>
+            <button onClick={save} disabled={!fd.naam} className={btnPrimary+" disabled:opacity-50"}>Opslaan</button>
+          </div>
+        </ModalWrap>
+      );
+    };
+
     // ─── HEADER FOTO MODAL ────────────────────────────────────────────────────────
     const HeaderFotoModal = ({ onClose, onSave, headerFoto }) => {
       const [foto, setFoto] = useState(headerFoto);
@@ -975,8 +1076,7 @@
         setLoading(true);
         const r=new FileReader();
         r.onload=ev=>{setFoto(ev.target.result);setLoading(false);};
-        r.onerror=()=>{alert('Fout');setLoading(false);};
-        r.readAsDataURL(f);
+        r.onerror=()=>{alert('Fout');setLoading(false);}; r.readAsDataURL(f);
       };
       return (
         <ModalWrap onClose={onClose} title="Header foto">
